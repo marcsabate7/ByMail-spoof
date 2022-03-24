@@ -2,3 +2,4 @@ colorama
 simplejson
 argparse
 dnspython
+taser

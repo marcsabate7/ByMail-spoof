@@ -7,7 +7,7 @@ config = {
 	"server_mode":{
 		"recv_mail_server": "", # Ip del mail server de la victima, esta se tiene que introducir al correr la herramienta
 		"recv_mail_server_port": 25,
-		"starttls": False,
+		"starttls": False,          # Missatge xifrat amb TLS -> True / No xifrat -> False
 	},
 
 }

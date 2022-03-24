@@ -5,8 +5,6 @@ from taser import printx
 
 
 def banner():
-    author = '@marcsabate7'
-    version = 'v0.1.0'
     printx.colored('''                                                                                                                                                     
 ______        ___  ___        _  _ 
 | ___ \       |  \/  |       (_)| |
