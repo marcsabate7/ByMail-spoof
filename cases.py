@@ -1,6 +1,11 @@
 from additional.common import *
 
-test_cases = {
+# Change Content Type depending if you want to send plain text or html. You can play with this to headers:
+# - Content-Type: text/html; charset="iso-8859-1"
+# - Content-Type: text/plain; charset="UTF-8"
+
+
+cases = {
     "server_a1": {
         "helo": b"helo.attack.com",
         "mailfrom": b"<any@mailfrom.notexist.legitimate.com>",

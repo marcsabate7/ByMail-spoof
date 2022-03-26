@@ -3,3 +3,4 @@ simplejson
 argparse
 dnspython
 taser
+tabulate
