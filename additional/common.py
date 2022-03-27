@@ -33,27 +33,34 @@ def query_mx_record(domain):
 
 
 def get_mail_server_from_email_address(domain):
-    return query_mx_record(domain)
+	return query_mx_record(domain)
 
 
 def read_user_emails():
-    emails_list = open("users.txt",'r')
-    emails = []
-    for email in emails_list.readlines():
-        emails.append(email.strip())
-    emails_list.close()
-    return emails
+	emails_list = open("users.txt",'r')
+	emails = []
+	for email in emails_list.readlines():
+		emails.append(email.strip())
+	emails_list.close()
+	return emails
 
 
 def update_info(input, old, new):
+	#print(str(new)+"\n")
 	if isinstance(input, dict):
 		items = list(input.items())
 	elif isinstance(input, (list, tuple)):
 		items = enumerate(input)
 	else:
+		#print("Old: "+str(old), "New: "+str(new))
+		#print("\n")
+		#print(input)
 		return input.replace(old, new)
 
 	for key, value in items:
 		input[key] = update_info(value, old, new)
-
+	#print("\n")
+	#print("INPUT")
+	#print(input)
+	#print("\n")
 	return input

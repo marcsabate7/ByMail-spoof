@@ -55,7 +55,7 @@ def check_config(args):
     data = []
     mode = config['case_id']
 
-    print("Congifuration: \n")
+    print("Configuration: \n")
     if mode.decode("utf-8") not in cases:
         printx.colored("[-] You need to set a valid mode, please select one from 'cases.py'",fg="red")
         end_script()
@@ -91,6 +91,8 @@ def main():
 
     emails = read_user_emails()
 
+    last_victim_email = "victim@victim.com"
+
     for victim_email in emails:
         domain = victim_email.split("@")[1]
         mail_server_ip = get_mail_server_from_email_address(domain)
@@ -98,14 +100,15 @@ def main():
         mail_server_port = config["server_mode"]['recv_mail_server_port']
         starttls = config['server_mode']['starttls']
 
-        builder_obj = Builder(cases,config,victim_email)
+        builder_obj = Builder(cases,config,victim_email,last_victim_email)
         smtp_seqs = builder_obj.generate_smtp_seqs()
 
         message_content = smtp_seqs["msg_content"]
 
         send_mail = SendMail()
         send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = args.v)
-        send_mail.send_mail()
+        #send_mail.send_email()
+        last_victim_email = victim_email
 
 if __name__ == '__main__':
     main()
