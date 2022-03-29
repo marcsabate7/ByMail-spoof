@@ -6,7 +6,7 @@ from additional.common import *
 
 
 cases = {
-    "server_a1": {
+    "1": {
         "helo": b"helo.attack.com",
         "mailfrom": b"<any@mailfrom.notexist.legitimate.com>",
         "rcptto": b"<victim@victim.com>",
@@ -19,7 +19,7 @@ cases = {
         },
         "description": b"Non-existent subdomains in MAIL FROM"
     },
-    "server_a2": {
+    "2": {
         "helo": b"attack.com",
         "mailfrom": b"<(any@legitimate.com>",
         "rcptto": b"<victim@victim.com>",

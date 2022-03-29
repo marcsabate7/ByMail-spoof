@@ -26,11 +26,9 @@ class SendMail(object):
 		self.mail_from = mail_from
 		self.starttls = starttls
 		self.verbose = verbose
-		print("AIXO ES EL RCPTTO")
-		print(rcpt_to)
 
 
-	'''def read_line(self, sock):
+	def read_line(self, sock):
 		buff = StringIO()
 		while True:
 			data = (sock.recv(1)).decode("utf-8")
@@ -45,25 +43,26 @@ class SendMail(object):
 
 
 	def print_recv_msg(self, client_socket):
-		if self.verbose!=False:
+		if self.verbose != False:
 			print("\033[91m"+">>> ", end='')
-			time.sleep(1)
+		time.sleep(1)
 
-			timeout = time.time()
-
-			msg = ""
-			while True:
-				line  = self.read_line(client_socket)
-				msg += line
+		msg = ""
+		while True:
+			line  = self.read_line(client_socket)
+			msg += line
+			if self.verbose != False:
 				print(line) 
-				if "-" not in line:
+			if "-" not in line:
+				break
+			else:
+				if len(line) > 5 and "-" not in line[:5]:
 					break
-				else:
-					if len(line) > 5 and "-" not in line[:5]:
-						break
-				time.sleep(0.1)
+			time.sleep(0.1)
+		if self.verbose != False:
 			print("\033[0m")
-			return msg
+		return msg
+
 
 
 	def send_smtp_cmds(self, client_socket):
@@ -102,12 +101,11 @@ class SendMail(object):
 		client_socket = socket(AF_INET,SOCK_STREAM)
 		#print("Aquest es el verbose:"+str(self.verbose))
 		#print("Connecting "+ str(self.mail_server))
-		print(self.verbose)
+		#print(self.verbose)
 		client_socket.connect(self.mail_server)
 		self.print_recv_msg(client_socket)
-		print("aqui arribem 1")
+		#print("aqui arribem 1")
 		if self.starttls == True:
-			print(client_socket)
 			client_socket.send(b"ehlo "+ self.helo +b"\r\n")
 			self.print_send_msg("ehlo "+ self.helo.decode("utf-8")+"\r\n")
 			self.print_recv_msg(client_socket)
@@ -115,12 +113,9 @@ class SendMail(object):
 			client_socket.send(b"starttls\r\n")
 			self.print_send_msg("starttls\r\n") 
 			self.print_recv_msg(client_socket)
-			try:
-				tls_socket = ssl.wrap_socket(client_socket, ssl_version=ssl.PROTOCOL_TLS)
-				self.tls_socket = tls_socket
-			except:
-				pass
 
+			tls_socket = ssl.wrap_socket(client_socket, ssl_version=ssl.PROTOCOL_TLS)
+			self.tls_socket = tls_socket
 
 		self.client_socket = client_socket
 
@@ -147,4 +142,4 @@ class SendMail(object):
 			traceback.print_exc()	
 
 	def __del__(self):
-		self.close_socket()'''
+		self.close_socket()

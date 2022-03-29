@@ -1,5 +1,7 @@
 import sys
 import argparse
+import signal
+from pwn import *
 
 from taser import printx
 
@@ -13,6 +15,14 @@ from builder import Builder
 
 cases = cases.cases
 config = config.config
+
+
+def def_handler(sig, frame):
+    printx.colored("\n\n[!] Exiting program...\n", fg="red")
+    sys.exit(1)
+
+# Ctrl+C
+signal.signal(signal.SIGINT, def_handler)
 
 
 def banner():
@@ -87,13 +97,15 @@ def main():
     check_config(args)
 
     print("\n")
-    printx.colored("[+] Starting sending emails...",fg="green")
-
+    printx.colored("[+] Starting sending emails...\n")
+    print("\n")
+    
     emails = read_user_emails()
 
     last_victim_email = "victim@victim.com"
 
     for victim_email in emails:
+        print("[+] Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')
         domain = victim_email.split("@")[1]
         mail_server_ip = get_mail_server_from_email_address(domain)
 
@@ -107,8 +119,9 @@ def main():
 
         send_mail = SendMail()
         send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = args.v)
-        #send_mail.send_email()
+        send_mail.send_email()
         last_victim_email = victim_email
-
+        printx.colored("[✔] Email sent succesfully to: "+str(victim_email),fg="green")
+        print("\n")
 if __name__ == '__main__':
     main()

@@ -19,7 +19,7 @@ class Builder(object):
 		cases = update_info(cases, b"legitimate.com", legitimate_site)
 		cases = update_info(cases, b"victim@victim.com", victim_email)
 
-		print(cases)
+		#print(cases)
 		return cases
 
 
