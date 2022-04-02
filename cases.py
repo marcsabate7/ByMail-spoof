@@ -10,7 +10,7 @@ cases = {
         "helo": b"helo.attack.com",
         "mailfrom": b"<any@mailfrom.notexist.legitimate.com>",
         "rcptto": b"<victim@victim.com>",
-        "data": {                   # Cambiar los datos del correo aqui
+        "data": {                   
             "from_header": b"From: <admin@legitimate.com>\r\n",
             "to_header": b"To: <victim@victim.com>\r\n",
             "subject_header": b"Subject: Reunion llegar a la hora\r\n",
@@ -23,7 +23,7 @@ cases = {
         "helo": b"attack.com",
         "mailfrom": b"<(any@legitimate.com>",
         "rcptto": b"<victim@victim.com>",
-        "data": {                   # Cambiar los datos del correo aqui
+        "data": {                   
             "from_header": b"From: <admin@legitimate.com>\r\n",
             "to_header": b"To: <victim@victim.com>\r\n",
             "subject_header": b"Subject: empty MAIL FROM address\r\n",

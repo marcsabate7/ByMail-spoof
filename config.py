@@ -1,12 +1,13 @@
 config = {
-	"attacker_site": b"attack.com", # attack.com
-	"legitimate_site_address": b"prova@semic.es", # FROM header that is the address displayed to the final user  
-	"case_id": b"1", 
-    # Set the victim address in the users.txt file which is placed in the same folder
+	"attacker_site": b"attack.com", 
+	"legitimate_site_address": b"prova@semic.es",   # Address you want to display to the final user  
+	"case_id": b"1",    # Select mode in cases.py file
+    
+    # Set the victim/s address (people you want to send the mail to) in the users.txt file
 
 	"server_mode":{
-		"recv_mail_server": "", # Ip del mail server de la victima, esta se tiene que introducir al correr la herramienta
+		"recv_mail_server": "",     #Leave it empty this will be caught automatically querying the vixitm MX server
 		"recv_mail_server_port": 25,
-		"starttls": True,          # Missatge xifrat amb TLS -> True / No xifrat -> False
+		"starttls": True,           # With cipher starttls -> True / Withour cipher starttls -> False
 	},
 }

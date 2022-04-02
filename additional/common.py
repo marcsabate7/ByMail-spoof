@@ -46,21 +46,13 @@ def read_user_emails():
 
 
 def update_info(input, old, new):
-	#print(str(new)+"\n")
 	if isinstance(input, dict):
 		items = list(input.items())
 	elif isinstance(input, (list, tuple)):
 		items = enumerate(input)
 	else:
-		#print("Old: "+str(old), "New: "+str(new))
-		#print("\n")
-		#print(input)
 		return input.replace(old, new)
 
 	for key, value in items:
 		input[key] = update_info(value, old, new)
-	#print("\n")
-	#print("INPUT")
-	#print(input)
-	#print("\n")
 	return input

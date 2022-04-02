@@ -18,7 +18,7 @@ config = config.config
 
 
 def def_handler(sig, frame):
-    printx.colored("\n\n[!] Exiting program...\n", fg="red")
+    printx.colored("\n\n[-] Closing program...\n",fg="red")
     sys.exit(1)
 
 # Ctrl+C
@@ -46,17 +46,16 @@ def banner():
 def parse_args():
     print("\n")
     parser = argparse.ArgumentParser(
-        description="DESCRIPTION: Este script se utiliza para enviar correos electronicos suplantando la identidad de otra persona",usage="\n- python bymail.py   \n\n  ES NECESSARIO RELLENAR los siguientes ficheros para USAR la herramienta:\n\t- usuarios.txt \n\t -body.txt\n\t- config.py \n ", epilog='\nEjemplo: \r\npython ' + sys.argv[0] + " -v True"
+        description="DESCRIPTION: This script is used to send emails impersonating the identity of another person",usage="\n- python bymail.py   \n\n  ES NECESSARIO RELLENAR los siguientes ficheros para USAR la herramienta:\n\t- users.txt \n\t -body.txt\n\t- config.py \n ", epilog='\Example: \r\npython ' + sys.argv[0] + " -v True"
     )
 
-    parser.add_argument('-v', required=False, default=False, type=bool,help='Mostrar mensajes por pantalla (True/False)')
+    parser.add_argument('-v', required=False, default=False, type=bool,help='Show debug messages in the screen (True/False)')
 
     args = parser.parse_args()
     return args
 
 def end_script():
-    print("\n")
-    printx.colored("[-] Closing...",fg="red")
+    printx.colored("\n\n[-] Closing program...\n",fg="red")
     sys.exit(1)
 
 def check_config(args):
@@ -85,10 +84,6 @@ def check_config(args):
 
     print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 
-    # LListar domini com el que esta enviant
-    # Llistar xifratge
-    # Listar correu com el que esta enviant
-
 
 def main():
     banner()
@@ -108,7 +103,7 @@ def main():
         print("[+] Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')
         domain = victim_email.split("@")[1]
         mail_server_ip = get_mail_server_from_email_address(domain)
-
+        
         mail_server_port = config["server_mode"]['recv_mail_server_port']
         starttls = config['server_mode']['starttls']
 
