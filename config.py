@@ -1,6 +1,6 @@
 config = {
 	"attacker_site": b"attack.com", # attack.com
-	"legitimate_site_address": b"msabate@semic.es", # FROM header that is the address displayed to the final user  
+	"legitimate_site_address": b"prova@semic.es", # FROM header that is the address displayed to the final user  
 	"case_id": b"1", 
     # Set the victim address in the users.txt file which is placed in the same folder
 
