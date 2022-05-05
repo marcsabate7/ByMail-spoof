@@ -37,7 +37,7 @@ class Builder(object):
 			message = msg_content["from_header"] + msg_content["to_header"] + msg_content["subject_header"] + msg_content["other_headers"] + msg_content["body"]
 		else:
 			message = msg_content["from_header"] + msg_content["to_header"] + msg_content["subject_header"] + msg_content["other_headers"] + body
-
+			
 		return message
 		
 		
@@ -52,5 +52,4 @@ class Builder(object):
 			"msg_content": self.generate_message()
 		}
 
-		#print(smtp_seqs)
 		return smtp_seqs

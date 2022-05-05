@@ -4,6 +4,7 @@ import time
 import ssl
 import base64
 from io import StringIO
+import sys
 
 class SendMail(object):
 	def __init__(self):
@@ -68,7 +69,8 @@ class SendMail(object):
 	def send_smtp_cmds(self, client_socket):
 		client_socket.send(b"ehlo "+self.helo+b"\r\n")
 		time.sleep(0.1)
-		self.print_send_msg("ehlo "+ self.helo.decode("utf-8")+"\r\n") 
+		self.print_send_msg("ehlo "+ self.helo.decode("utf-8")+"\r\n")
+		self.print_recv_msg(client_socket)
 
 		client_socket.send(b'mail from: '+self.mail_from+b'\r\n')
 		time.sleep(0.1)

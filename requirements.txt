@@ -4,4 +4,4 @@ argparse
 dnspython
 taser
 tabulate
-pwn
+progress
