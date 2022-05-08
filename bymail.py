@@ -25,7 +25,6 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 import json
 
-
 cases = cases.cases
 config = config.config
 
@@ -50,11 +49,12 @@ def banner():
 	print("                          	╚═════╝    ╚═╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚══════╝")
 	print("")
 	print( "                              __________________________________________________"		)			
-	print( "                                ︻デ═一  Created by: marcsabate7 v1.0  ︻デ═一 " )
+	print( "                                  ︻デ═一  Created by: marcsabate7  ︻デ═一 " )
 	print( "          -------------------------------------------------------------------------------------------")
 	print( "               		   Any action related to ByMail is only your responsibility")
 	print( "          -------------------------------------------------------------------------------------------")
-
+	print("")
+	printx.colored(" v0.1.0 ",fg="white",bg="green")
 
 def reportConfig(verbose, proxy_list,proxy_file, logs):
 	print("")
