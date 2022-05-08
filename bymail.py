@@ -23,7 +23,7 @@ from builder import Builder
 #from progress.spinner import MoonSpinner 
 import threading
 from concurrent.futures import ThreadPoolExecutor
-
+import json
 
 
 cases = cases.cases
@@ -277,6 +277,7 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 		threads_message = "* Please set a correct value for a number of threads, or recommendation is to set in 10 if you have to send a lot of emails"
 		errors_detected = True
 	else:
+		num_threads = int(num_threads)
 		if num_threads > 10:
 			threads_message = str(num_threads) + "\n" + "* Our recommendation is to set it to 10 or minor, run it at your own risk"
 		else:
@@ -320,7 +321,8 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 		sys.exit(1)
 
 def threadExecution(emails, victim_email, email_number, verbose_mode):
-	#print("["+ str(email_number+1)+"] "+ victim_email)
+	print("[Thread "+ str(email_number+1)+"] "+ victim_email)
+	sys.exit(1)
 	if email_number == 0:
 		last_victim_email = "victim@victim.com"
 	else:
@@ -354,80 +356,123 @@ def executor(num_threads,emails, verbose):
 	with ThreadPoolExecutor(max_workers=num_threads) as executor:                                                
 		[executor.submit(threadExecution,emails, emails[i],i, verbose)for i in range(len(emails))]
 
+def optionsMenu():
+	exit_loop = False
+	while exit_loop == False:
+		questions = [
+			{
+				'type': 'list',
+				'name': 'option',
+				'message': 'Choose an option?',
+				'choices': [
+					'1) Manual configuration for sending emails',
+					'2) Show victim emails set',
+					'3) Show all configuration',
+					'4) Show templates',
+					'5) Show payloads',
+					'6) Help',
+					'7) Exit program',
+				]
+			}
+		]
 
+		answers = prompt(questions, style=custom_style_2)
+
+		if answers['option'] == "1) Manual configuration for sending emails":
+			# Preparar preguntes per verbose y mes de ferho manual
+			exit_loop = True
+			questions = [
+				{
+					'type': 'confirm',
+					'message': 'Verbose mode (report info while execution)?',
+					'name': 'verbose',
+					'default': True,
+				},
+				{
+					'type': 'confirm',
+					'message': 'Log mode?',
+					'name': 'logs',
+					'default': True,
+				},
+				{
+					'type': 'input',
+					'message': 'Num threads (Default 1):',
+					'name': 'num_threads',
+					'default': "1",
+				},
+				{
+					'type': 'input',
+					'message': 'Input proxies file name if you want to use proxies, if not leave it blank:',
+					'name': 'proxy_file',
+					'default': "",
+				}
+			]
+			manual_config_answers = prompt(questions, style=custom_style_2)
+			return manual_config_answers
+		if answers['option'] == "2) Show victim emails set":
+			data = []
+			col_names = ["Option", "Value"]
+			emails = read_user_emails()
+			if len(emails) == 0:
+				printx.colored("\n\n[-] Users file is empty, please add victim emails to 'user.txt' file!\n",fg="red")
+			else:
+				final_emails = len(emails)
+				f = open("users.txt","r")
+				all_emails = f.readlines()[0:10]
+				all_emails = ''.join([str(email) for email in all_emails])
+				if final_emails > 50:
+					final_emails = str(final_emails) + "  -  Only showing the firts 50 emails" 
+				final_emails = str(final_emails) + "\n" + str(all_emails)
+
+			data.append(["Emails uploaded", final_emails])
+			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+			print("\n")
+		if answers['option'] == "3) Show all configuration":
+			reportConfig(False,False,False,False)
+			print("\n")
+		if answers['option'] == "4) Show templates":
+			showTemplates()
+			print("\n")
+		if answers['option'] == "5) Show payloads":
+			showPayloads()
+			print("\n")
+		if answers['option'] == "6) Help":
+			helpPanel()
+			print("\n")
+		if answers['option'] == "7) Exit program":
+			end_script()
 
 def main():
 	banner()
 	
 	args = parse_args()
 	if args["args_counter"] == 0:
-		exit_loop = False
-		while exit_loop == False:
-			questions = [
-				{
-					'type': 'list',
-					'name': 'option',
-					'message': 'Choose an option?',
-					'choices': [
-						'1) Manual configuration for sending emails',
-						'2) Show victim emails set',
-						'3) Show all configuration',
-						'4) Show templates',
-						'5) Show payloads',
-						'6) Help',
-						'7) Exit program',
-					]
-				}
-			]
-
-			answers = prompt(questions, style=custom_style_2)
-
-			if answers['option'] == "1) Manual configuration for sending emails":
-				# Preparar preguntes per verbose y mes de ferho manual
-				print("Mode manual configuration")
-				exit_loop = True
-			if answers['option'] == "2) Show victim emails set":
-				data = []
-				col_names = ["Option", "Value"]
-				emails = read_user_emails()
-				if len(emails) == 0:
-					printx.colored("\n\n[-] Users file is empty, please add victim emails to 'user.txt' file!\n",fg="red")
-				else:
-					final_emails = len(emails)
-					f = open("users.txt","r")
-					all_emails = f.readlines()[0:10]
-					all_emails = ''.join([str(email) for email in all_emails])
-					if final_emails > 50:
-						final_emails = str(final_emails) + "  -  Only showing the firts 50 emails" 
-					final_emails = str(final_emails) + "\n" + str(all_emails)
-
-				data.append(["Emails uploaded", final_emails])
-				print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
-				print("\n")
-			if answers['option'] == "3) Show all configuration":
-				reportConfig(False,False,False,False)
-				print("\n")
-			if answers['option'] == "4) Show templates":
-				showTemplates()
-				print("\n")
-			if answers['option'] == "5) Show payloads":
-				showPayloads()
-				print("\n")
-			if answers['option'] == "6) Help":
-				helpPanel()
-				print("\n")
-			if answers['option'] == "7) Exit program":
-				end_script()
+		args = optionsMenu()
+		proxy = False
+		if args["proxy_file"] != "":
+			proxy = True
+		try:
+			threads_incorrect = False
+			args["num_threads"] = int(args["num_threads"])
+		except:
+			threads_incorrect = True
+		check_config(args["verbose"],proxy,args["proxy_file"],args["logs"], args["num_threads"], threads_incorrect)
 	else:
 		check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"])
+	
+
 	print("\n")
 
-	input("Press any key to start sending emails...")
+	from halo import Halo
+
+	with Halo(text='Press enter key to start sending emails...', spinner='dots'):
+		input("Press any key to start sending emails...")
+	
 	print("\n")
 	
-	printx.colored("[+] Starting sending emails...\n")
+	printx.colored("[+] Starting sending emails...\n",fg="green")
 	print("\n")
-	
+
 	emails = read_user_emails()
 
 	last_victim_email = "victim@victim.com"

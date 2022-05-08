@@ -7,19 +7,44 @@ from PyInquirer import prompt, Separator
 from examples import custom_style_2
 
 
+
+def get_delivery_options(answers):
+    options = ['bike', 'car', 'truck']
+    if answers['size'] == 'jumbo':
+        options.append('helicopter')
+    return options
+
+
 questions = [
     {
         'type': 'list',
-        'name': 'option',
-        'message': 'Choose an option?',
+        'name': 'theme',
+        'message': 'What do you want to do?',
         'choices': [
-            '1) Start sending emails',
-            '2) Manual configuration for sending emails',
-            '3) Show list of emails set',
-            '4) Show all configuration set',
-            '5) Exit program',
+            'Order a pizza',
+            'Make a reservation',
+            Separator(),
+            'Ask for opening hours',
+            {
+                'name': 'Contact support',
+                'disabled': 'Unavailable at this time'
+            },
+            'Talk to the receptionist'
         ]
-    }
+    },
+    {
+        'type': 'list',
+        'name': 'size',
+        'message': 'What size do you need?',
+        'choices': ['Jumbo', 'Large', 'Standard', 'Medium', 'Small', 'Micro'],
+        'filter': lambda val: val.lower()
+    },
+    {
+        'type': 'list',
+        'name': 'delivery',
+        'message': 'Which vehicle you want to use for delivery?',
+        'choices': get_delivery_options,
+    },
 ]
 
 answers = prompt(questions, style=custom_style_2)
