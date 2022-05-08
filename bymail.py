@@ -366,12 +366,13 @@ def optionsMenu():
 				'message': 'Choose an option?',
 				'choices': [
 					'1) Manual configuration for sending emails',
-					'2) Show victim emails set',
-					'3) Show all configuration',
-					'4) Show templates',
-					'5) Show payloads',
-					'6) Help',
-					'7) Exit program',
+					'2) View victim emails',
+					'3) Get emails from domain',
+					'4) View all configuration',
+					'5) View default templates',
+					'6) View payloads',
+					'7) Help',
+					'8) Exit program',
 				]
 			}
 		]
@@ -409,7 +410,8 @@ def optionsMenu():
 			]
 			manual_config_answers = prompt(questions, style=custom_style_2)
 			return manual_config_answers
-		if answers['option'] == "2) Show victim emails set":
+
+		if answers['option'] == "2) View victim emails":
 			data = []
 			col_names = ["Option", "Value"]
 			emails = read_user_emails()
@@ -427,19 +429,27 @@ def optionsMenu():
 			data.append(["Emails uploaded", final_emails])
 			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 			print("\n")
-		if answers['option'] == "3) Show all configuration":
+
+		if answers['option'] == "3) Get emails from domain":
+			print("Under development")
+			print("\n")
+		if answers['option'] == "4) View all configuration":
 			reportConfig(False,False,False,False)
 			print("\n")
-		if answers['option'] == "4) Show templates":
+
+		if answers['option'] == "5) View default templates":
 			showTemplates()
 			print("\n")
-		if answers['option'] == "5) Show payloads":
+
+		if answers['option'] == "6) View payloads":
 			showPayloads()
 			print("\n")
-		if answers['option'] == "6) Help":
+
+		if answers['option'] == "7) Help":
 			helpPanel()
 			print("\n")
-		if answers['option'] == "7) Exit program":
+
+		if answers['option'] == "8) Exit program":
 			end_script()
 
 def main():
