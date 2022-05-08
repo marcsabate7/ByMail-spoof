@@ -5,3 +5,6 @@ dnspython
 taser
 tabulate
 progress
+threading
+futures
+PyInquirer

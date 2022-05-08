@@ -1,3 +1,13 @@
+from __future__ import print_function, unicode_literals
+
+from pprint import pprint
+
+from PyInquirer import prompt, Separator
+
+from examples import custom_style_2
+
+from doctest import ELLIPSIS_MARKER
+from email import message
 import sys
 import argparse
 import signal
@@ -10,11 +20,15 @@ from additional.common import *
 from additional.sendmail import *
 from tabulate import tabulate
 from builder import Builder
-from progress.spinner import MoonSpinner 
+#from progress.spinner import MoonSpinner 
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
 
 
 cases = cases.cases
 config = config.config
+
 
 
 def def_handler(sig, frame):
@@ -107,52 +121,92 @@ def reportConfig(verbose, proxy_list,proxy_file, logs):
 
 	print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 	print("\n")
+	
+	printx.colored("* To use verbose, logs or threads take a look to the help panel!", fg="purple")
+	print("\n")
 
 def showTemplates():
 	print("\n")
-	print("List of templates to use:")
+	print("List of templates:")
 
 def showPayloads():
 	print("\n")
-	print("List of payloads to use:")
+	print("List of payloads:")
+
+def helpPanel():
+	print("\n")
+	print("Help panel:\n")
+	print("                       ==============================================================")
+	printx.colored("                                                    Utilities",fg="purple")
+	print("                       ==============================================================")
+	print("                       [-t <num threads>] Threads to use (10 is recommended)")
+	print("                       [-v] Verbose mode reporting all steps and status")
+	print("                       [-proxy <file>] Proxy list, each email will be send with different IP")
+	print("                       [-l] Log generator, logging all steps and reports")
+	print("                       [-templates] Examples for email templates")
+	print("                       [-payloads] Show different payloads to use")
+	print("                       [-h/-help] Show this help panel and exit")
+	print("                       ==============================================================")
+	printx.colored("                                               Lookup your config",fg="purple")
+	print("                       ==============================================================")
+	print("                       [-lookup] Show config, users and mode that are now set")
+	print("                       ==============================================================")
+	printx.colored("                                                   Examples",fg="purple")
+	print("                       ==============================================================")
+	print("                       Full command line mode:")
+	print("                         - Example 1: python bymail.py -t 10 -v")
+	print("                         - Example 2: python bymail.py -t 3 -l -v")
+	print("                         - Example 3: python bymail.py -t 3 -l -v -proxy proxies.txt")
+	print("                         - Example 4: python bymail.py -templates")
+	print("                         - Example 5: python bymail.py -payloads")
+	print("                         - Example 5: python bymail.py -lookup")
+	printx.colored("                         * Use this mode to run directly the program!",fg="blue")
+	print("")
+	print("                       Step by step mode:")
+	print("                         - Example 1: python bymail.py")
+	printx.colored("                         * You only need to follow program instructions step by step!",fg="blue")
+	print("                       ==============================================================")
+	print("")
+	print("")
+
+
 
 def parse_args():
 	verbose = False
 	proxy_list = False
 	proxy_file = False
 	logs = False
+	threads_incorrect = False
+	threads = False
+	num_threads = 1
+	args_counter = 0
 	print("\n")
 	arguments = sys.argv[1:]
 	for argument in arguments:
-		if argument == '-h':
-			print("Help panel:\n")
-			print("                       ==============================================================")
-			print("                                                    Utilities")
-			print("                       ==============================================================")
-			print("                       [-v] Verbose mode reporting all steps and status")
-			print("                       [-proxy <file>] Proxy list, each email will be send with different IP")
-			print("                       [-l] Log generator, logging all steps and reports")
-			print("                       [-t] Examples for email templates")
-			print("                       [-p] Show different payloads to use")
-			print("                       [-h] Show this help panel and exit")
-			print("                       ==============================================================")
-			print("                                               Lookup your config")
-			print("                       ==============================================================")
-			print("                       [-lookup] Show config, users and mode that are now set")
-			print("                       ==============================================================")
-			print("")
-			print("")
-			sys.exit(1)
-
-		if argument == '-t':
+		if argument == '-h' or argument == '-help':
+			helpPanel()
+			sys.exit()
+		if argument == '-templates':
 			showTemplates()
 			sys.exit(1)
-		if argument == '-p':
+		if argument == '-payloads':
 			showPayloads()
 			sys.exit(1)
 		if argument == '-v':
 			verbose = True
+			args_counter+=1
+		if argument == '-t':
+			args_counter+=1
+			threads = True
+			file_index = arguments.index("-t") + 1
+			num_threads = arguments[file_index]
+			try:
+				num_threads = int(num_threads)
+			except:
+				threads_incorrect = True
+
 		if argument == '-proxy':
+			args_counter+=1
 			proxy_list = True	
 			#print(arguments)
 			file_index = arguments.index("-proxy") + 1
@@ -176,6 +230,9 @@ def parse_args():
 		"proxy": proxy_list,
 		"proxy_file":proxy_file,
 		"logs": logs,
+		"num_threads":num_threads,
+		"threads_incorrect":threads_incorrect, 
+		"args_counter":args_counter
 	}
 
 
@@ -185,7 +242,7 @@ def end_script():
 	printx.colored("\n\n[-] Closing program...\n",fg="red")
 	sys.exit(1)
 
-def check_config(verbose, proxy_list,proxy_file, logs):
+def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_incorrect):
 	errors_detected = False
 	print("")
 	col_names = ["Option", "Value"]
@@ -215,6 +272,16 @@ def check_config(verbose, proxy_list,proxy_file, logs):
 
 
 	data.append(["Sending emails as", str(config["legitimate_site_address"].decode("utf-8"))])
+
+	if threads_incorrect == True:
+		threads_message = "* Please set a correct value for a number of threads, or recommendation is to set in 10 if you have to send a lot of emails"
+		errors_detected = True
+	else:
+		if num_threads > 10:
+			threads_message = str(num_threads) + "\n" + "* Our recommendation is to set it to 10 or minor, run it at your own risk"
+		else:
+			threads_message = num_threads
+	data.append(["Number of threads", threads_message])
 
 	tls_cipher = config["server_mode"]["starttls"]
 	if tls_cipher == True:
@@ -252,11 +319,107 @@ def check_config(verbose, proxy_list,proxy_file, logs):
 		printx.colored("\n\n[-] Invalid configuration detected, fix it before continue...\n",fg="red")
 		sys.exit(1)
 
+def threadExecution(emails, victim_email, email_number, verbose_mode):
+	#print("["+ str(email_number+1)+"] "+ victim_email)
+	if email_number == 0:
+		last_victim_email = "victim@victim.com"
+	else:
+		last_victim_email = emails[email_number-1]
+	print("["+ str(email_number+1)+"]  Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')
+	domain = victim_email.split("@")[1]
+	mail_server_ip = get_mail_server_from_email_address(domain)
+	#print(mail_server_ip)
+	mail_server_port = config["server_mode"]['recv_mail_server_port']
+	starttls = config['server_mode']['starttls']
+
+	builder_obj = Builder(cases,config,victim_email,last_victim_email)
+	smtp_seqs = builder_obj.generate_smtp_seqs()
+
+	smtp_seqs = str(smtp_seqs)	# eliminar aquesta linia
+	#print("["+ str(email_number+1)+ "]" +smtp_seqs)
+
+	message_content = smtp_seqs["msg_content"]
+	message_content = str(message_content)	# eliminar aquesta linia
+	#print("["+ str(email_number+1)+ "]" +message_content)
+	time.sleep(5)
+	sys.exit(1)
+	send_mail = SendMail()
+	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode)
+	send_mail.send_email()
+	last_victim_email = victim_email
+	printx.colored("[✔] Email sent succesfully to: "+str(victim_email),fg="green")
+	print("\n")
+
+def executor(num_threads,emails, verbose):
+	with ThreadPoolExecutor(max_workers=num_threads) as executor:                                                
+		[executor.submit(threadExecution,emails, emails[i],i, verbose)for i in range(len(emails))]
+
+
+
 def main():
 	banner()
 	
 	args = parse_args()
-	check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"])
+	if args["args_counter"] == 0:
+		exit_loop = False
+		while exit_loop == False:
+			questions = [
+				{
+					'type': 'list',
+					'name': 'option',
+					'message': 'Choose an option?',
+					'choices': [
+						'1) Manual configuration for sending emails',
+						'2) Show victim emails set',
+						'3) Show all configuration',
+						'4) Show templates',
+						'5) Show payloads',
+						'6) Help',
+						'7) Exit program',
+					]
+				}
+			]
+
+			answers = prompt(questions, style=custom_style_2)
+
+			if answers['option'] == "1) Manual configuration for sending emails":
+				# Preparar preguntes per verbose y mes de ferho manual
+				print("Mode manual configuration")
+				exit_loop = True
+			if answers['option'] == "2) Show victim emails set":
+				data = []
+				col_names = ["Option", "Value"]
+				emails = read_user_emails()
+				if len(emails) == 0:
+					printx.colored("\n\n[-] Users file is empty, please add victim emails to 'user.txt' file!\n",fg="red")
+				else:
+					final_emails = len(emails)
+					f = open("users.txt","r")
+					all_emails = f.readlines()[0:10]
+					all_emails = ''.join([str(email) for email in all_emails])
+					if final_emails > 50:
+						final_emails = str(final_emails) + "  -  Only showing the firts 50 emails" 
+					final_emails = str(final_emails) + "\n" + str(all_emails)
+
+				data.append(["Emails uploaded", final_emails])
+				print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+				print("\n")
+			if answers['option'] == "3) Show all configuration":
+				reportConfig(False,False,False,False)
+				print("\n")
+			if answers['option'] == "4) Show templates":
+				showTemplates()
+				print("\n")
+			if answers['option'] == "5) Show payloads":
+				showPayloads()
+				print("\n")
+			if answers['option'] == "6) Help":
+				helpPanel()
+				print("\n")
+			if answers['option'] == "7) Exit program":
+				end_script()
+	else:
+		check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"])
 	print("\n")
 
 	input("Press any key to start sending emails...")
@@ -269,11 +432,13 @@ def main():
 
 	last_victim_email = "victim@victim.com"
 
+	executor(args["num_threads"],emails, args["verbose"])
+	sys.exit()
 	for victim_email in emails:
 		print("[+] Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')
 		domain = victim_email.split("@")[1]
 		mail_server_ip = get_mail_server_from_email_address(domain)
-
+		print(mail_server_ip)
 		mail_server_port = config["server_mode"]['recv_mail_server_port']
 		starttls = config['server_mode']['starttls']
 
@@ -283,10 +448,11 @@ def main():
 		message_content = smtp_seqs["msg_content"]
 
 		send_mail = SendMail()
-		send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = args.v)
+		send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = args["verbose"])
 		send_mail.send_email()
 		last_victim_email = victim_email
 		printx.colored("[✔] Email sent succesfully to: "+str(victim_email),fg="green")
 		print("\n")
+
 if __name__ == '__main__':
 	main()

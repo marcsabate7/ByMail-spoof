@@ -1,6 +1,7 @@
 from additional.common import *
 import sys
 
+
 class Builder(object):
 
 	def __init__(self, cases, config,victim_email,last_victim_email):
@@ -8,8 +9,11 @@ class Builder(object):
 		self.case_id = config["case_id"].decode("utf-8")
 		self.victim_email = victim_email.encode("utf-8")
 		self.last_victim_email = last_victim_email.encode("utf-8")
-		self.update_rcptto_info(cases,self.last_victim_email)
-		self.cases = self.update_cases_info(cases,self.victim_email)
+		self.cases = cases
+		#print(self.victim_email)
+		self.update_rcptto_info(self.cases,self.last_victim_email)
+		self.cases = self.update_cases_info(self.cases,self.victim_email)
+
 
 
 	def update_cases_info(self,cases, victim_email):
@@ -19,7 +23,7 @@ class Builder(object):
 		cases = update_info(cases, b"legitimate.com", legitimate_site)
 		cases = update_info(cases, b"victim@victim.com", victim_email)
 
-		#print(cases)
+		print(cases)
 		return cases
 
 
@@ -44,6 +48,7 @@ class Builder(object):
 	def generate_smtp_seqs(self):
 		cases = self.cases
 		case_id = self.case_id
+		
 
 		smtp_seqs = {
 			"helo": cases[case_id]["helo"],

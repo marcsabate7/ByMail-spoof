@@ -1,3 +1,4 @@
+from examples import custom_style_2
 import sys
 from time import gmtime, strftime
 import base64
@@ -56,3 +57,4 @@ def update_info(input, old, new):
 	for key, value in items:
 		input[key] = update_info(value, old, new)
 	return input
+
