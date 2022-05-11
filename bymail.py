@@ -53,12 +53,12 @@ def banner():
 	print("")
 	printx.colored(" v0.1.0 ",fg="white",bg="green")
 
-def reportConfig(verbose, proxy_list,proxy_file, logs):
+def reportConfig(config, cases,verbose, proxy_list,proxy_file, logs):
 	print("")
 	col_names = ["Option", "Value"]
 	data = []
 	mode = config['case_id']
-
+	
 	print("Config set:")
 	print("")
 	if mode.decode("utf-8") not in cases:
@@ -463,7 +463,7 @@ def optionsMenu():
 			print("\n")
 
 		if answers['option'] == "5) View all configuration":
-			reportConfig(False,False,False,False)
+			reportConfig(config.config,cases.cases,False,False,False,False)
 			print("\n")
 
 		if answers['option'] == "6) View default templates":
