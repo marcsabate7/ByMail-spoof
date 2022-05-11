@@ -439,7 +439,7 @@ def optionsMenu():
 			]
 			website_cloner_answers = prompt(questions, style=custom_style_2)
 			websiteCopier(website_cloner_answers["website_url"])
-		
+			sys.exit(0)
 		if answers['option'] == "3) Get emails from specific domain":
 			print("Under development")
 			print("\n")

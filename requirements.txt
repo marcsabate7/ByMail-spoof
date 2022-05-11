@@ -8,3 +8,4 @@ progress
 threading
 futures
 PyInquirer
+pywebcopy
