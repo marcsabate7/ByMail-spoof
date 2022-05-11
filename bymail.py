@@ -1,15 +1,12 @@
 from __future__ import print_function, unicode_literals
 
-from pprint import pprint
 
-from PyInquirer import prompt, Separator
+from PyInquirer import prompt
 
 from examples import custom_style_2
 
 from doctest import ELLIPSIS_MARKER
-from email import message
 import sys
-import argparse
 import signal
 
 from taser import printx
@@ -19,14 +16,14 @@ import cases
 from additional.common import *
 from additional.sendmail import *
 from tabulate import tabulate
-from builder import Builder
-#from progress.spinner import MoonSpinner 
-import threading
+from builder import update_cases_info,generate_smtp_seqs
 from concurrent.futures import ThreadPoolExecutor
 import json
+from halo import Halo
+from webcopy import websiteCopier
 
-cases = cases.cases
-config = config.config
+#cases = cases.cases
+
 
 
 
@@ -242,7 +239,7 @@ def end_script():
 	printx.colored("\n\n[-] Closing program...\n",fg="red")
 	sys.exit(1)
 
-def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_incorrect):
+def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_incorrect,config,cases):
 	errors_detected = False
 	print("")
 	col_names = ["Option", "Value"]
@@ -251,6 +248,7 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 
 	print("Config set:")
 	print("")
+
 	if mode.decode("utf-8") not in cases:
 		error_message = "* It's not a valid mode, please select one from 'cases.py' or the program will fail"
 		final_mode = mode.decode("utf-8")
@@ -320,41 +318,51 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 		printx.colored("\n\n[-] Invalid configuration detected, fix it before continue...\n",fg="red")
 		sys.exit(1)
 
-def threadExecution(emails, victim_email, email_number, verbose_mode):
-	print("[Thread "+ str(email_number+1)+"] "+ victim_email)
-	sys.exit(1)
-	if email_number == 0:
-		last_victim_email = "victim@victim.com"
-	else:
-		last_victim_email = emails[email_number-1]
-	print("["+ str(email_number+1)+"]  Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')
+
+def threadExecution(victim_email, verbose_mode,config,cases): # Aqui haurem de pasar la config
+	#print("[Thread "+ str(email_number+1)+"] "+ victim_email)
+
+	#print("[Thread "+ str(victim_email)+"] "+'\033[1m' + str(victim_email) + '\033[0m')
+	if victim_email == "marc-saba@hotmail.com":
+		print("estem esperant")
+		time.sleep(10)
 	domain = victim_email.split("@")[1]
 	mail_server_ip = get_mail_server_from_email_address(domain)
 	#print(mail_server_ip)
+
 	mail_server_port = config["server_mode"]['recv_mail_server_port']
 	starttls = config['server_mode']['starttls']
 
-	builder_obj = Builder(cases,config,victim_email,last_victim_email)
-	smtp_seqs = builder_obj.generate_smtp_seqs()
+	different_cases = cases
+	#print("\n")
+	#print(different_cases)
+	#print("\n")
+	
+	different_cases = update_cases_info(different_cases,victim_email,config)
+	
+	#print(different_cases)
+
+	'''sys.exit(1)
+	smtp_seqs = generate_smtp_seqs(cases)
 
 	smtp_seqs = str(smtp_seqs)	# eliminar aquesta linia
+	print(smtp_seqs)
 	#print("["+ str(email_number+1)+ "]" +smtp_seqs)
 
 	message_content = smtp_seqs["msg_content"]
 	message_content = str(message_content)	# eliminar aquesta linia
 	#print("["+ str(email_number+1)+ "]" +message_content)
-	time.sleep(5)
 	sys.exit(1)
 	send_mail = SendMail()
 	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode)
 	send_mail.send_email()
 	last_victim_email = victim_email
 	printx.colored("[✔] Email sent succesfully to: "+str(victim_email),fg="green")
-	print("\n")
+	print("\n")'''
 
-def executor(num_threads,emails, verbose):
-	with ThreadPoolExecutor(max_workers=num_threads) as executor:                                                
-		[executor.submit(threadExecution,emails, emails[i],i, verbose)for i in range(len(emails))]
+def executor(num_threads,emails, verbose,config,cases):
+	with ThreadPoolExecutor(max_workers=4) as executor:                                                
+		[executor.submit(threadExecution, email, verbose,config,cases)for email in emails]
 
 def optionsMenu():
 	exit_loop = False
@@ -365,27 +373,35 @@ def optionsMenu():
 				'name': 'option',
 				'message': 'Choose an option?',
 				'choices': [
-					'1) Manual configuration for sending emails',
-					'2) View victim emails',
-					'3) Get emails from domain',
-					'4) View all configuration',
-					'5) View default templates',
-					'6) View payloads',
-					'7) Help',
-					'8) Exit program',
+					'1) Send emails (manual configuration)',
+					'2) Website cloner',
+					'3) Get emails from specific domain',
+					'4) View victim emails',
+					'5) View all configuration',
+					'6) View default templates',
+					'7) View payloads',
+					'8) Help',
+					'9) Exit program',
 				]
 			}
 		]
 
 		answers = prompt(questions, style=custom_style_2)
 
-		if answers['option'] == "1) Manual configuration for sending emails":
+		if answers['option'] == "1) Send emails (manual configuration)":
 			# Preparar preguntes per verbose y mes de ferho manual
 			exit_loop = True
+			# Mirar si afegir el SENDER i el MODE as en aquestes preguntes ja que esta amb bytes i hem de mirar de arreglarho
 			questions = [
 				{
 					'type': 'confirm',
-					'message': 'Verbose mode (report info while execution)?',
+					'message': 'You want to chiper emails with TLS?',
+					'name': 'chiper',
+					'default': True,
+				},
+				{
+					'type': 'confirm',
+					'message': 'Verbose mode (report info while program is running)?',
 					'name': 'verbose',
 					'default': True,
 				},
@@ -408,10 +424,26 @@ def optionsMenu():
 					'default': "",
 				}
 			]
+
 			manual_config_answers = prompt(questions, style=custom_style_2)
 			return manual_config_answers
 
-		if answers['option'] == "2) View victim emails":
+		if answers['option'] == "2) Website cloner":
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input URL to clone:',
+					'name': 'website_url',
+					'default': "",
+				}
+			]
+			website_cloner_answers = prompt(questions, style=custom_style_2)
+			websiteCopier(website_cloner_answers["website_url"])
+		
+		if answers['option'] == "3) Get emails from specific domain":
+			print("Under development")
+			print("\n")
+		if answers['option'] == "4) View victim emails":
 			data = []
 			col_names = ["Option", "Value"]
 			emails = read_user_emails()
@@ -430,26 +462,23 @@ def optionsMenu():
 			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 			print("\n")
 
-		if answers['option'] == "3) Get emails from domain":
-			print("Under development")
-			print("\n")
-		if answers['option'] == "4) View all configuration":
+		if answers['option'] == "5) View all configuration":
 			reportConfig(False,False,False,False)
 			print("\n")
 
-		if answers['option'] == "5) View default templates":
+		if answers['option'] == "6) View default templates":
 			showTemplates()
 			print("\n")
 
-		if answers['option'] == "6) View payloads":
+		if answers['option'] == "7) View payloads":
 			showPayloads()
 			print("\n")
 
-		if answers['option'] == "7) Help":
+		if answers['option'] == "8) Help":
 			helpPanel()
 			print("\n")
 
-		if answers['option'] == "8) Exit program":
+		if answers['option'] == "9) Exit program":
 			end_script()
 
 def main():
@@ -458,6 +487,8 @@ def main():
 	args = parse_args()
 	if args["args_counter"] == 0:
 		args = optionsMenu()
+		print(args)
+
 		proxy = False
 		if args["proxy_file"] != "":
 			proxy = True
@@ -466,14 +497,29 @@ def main():
 			args["num_threads"] = int(args["num_threads"])
 		except:
 			threads_incorrect = True
-		check_config(args["verbose"],proxy,args["proxy_file"],args["logs"], args["num_threads"], threads_incorrect)
+
+		chiper_status = args["chiper"]
+		configuration = config.config
+		#print(configuration)
+		#config_json = json.load(configuration)
+		configuration["server_mode"]["starttls"] = chiper_status
+
+		print("\n")
+		while True:
+			emails = read_user_emails()
+			if len(emails) !=0:
+				printx.colored("Victim emails uploaded succesfully...!",fg="green")
+				break
+			printx.colored("Add victim emails to the users.txt file before continue...",fg="red")
+			time.sleep(5)
+		check_config(args["verbose"],proxy,args["proxy_file"],args["logs"], args["num_threads"], threads_incorrect,configuration,cases.cases)
+
 	else:
-		check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"])
+		configuration = config.config
+		check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"],configuration,cases.cases)
 	
 
 	print("\n")
-
-	from halo import Halo
 
 	with Halo(text='Press enter key to start sending emails...', spinner='dots'):
 		input("Press any key to start sending emails...")
@@ -487,7 +533,9 @@ def main():
 
 	last_victim_email = "victim@victim.com"
 
-	executor(args["num_threads"],emails, args["verbose"])
+	final_cases = cases.cases
+
+	executor(args["num_threads"],emails, args["verbose"],configuration,final_cases)
 	sys.exit()
 	for victim_email in emails:
 		print("[+] Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')

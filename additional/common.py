@@ -7,6 +7,8 @@ from time import gmtime, strftime
 import random
 import string
 import traceback
+import config
+import time
 
 def bs64encode(value):
 	return b"=?utf-8?B?"+ base64.b64encode(value) + b"?="
@@ -46,15 +48,18 @@ def read_user_emails():
 	return emails
 
 
-def update_info(input, old, new):
+'''def update_info(input, old, new):
+	#print(str(input)+"\n"+str(old) +" / "+str(new)+"\n")
 	if isinstance(input, dict):
 		items = list(input.items())
 	elif isinstance(input, (list, tuple)):
 		items = enumerate(input)
 	else:
+		#print(input.replace(old, new))
 		return input.replace(old, new)
 
 	for key, value in items:
 		input[key] = update_info(value, old, new)
-	return input
+
+	return input'''
 

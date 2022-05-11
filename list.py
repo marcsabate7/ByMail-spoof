@@ -34,13 +34,6 @@ questions = [
     },
     {
         'type': 'list',
-        'name': 'size',
-        'message': 'What size do you need?',
-        'choices': ['Jumbo', 'Large', 'Standard', 'Medium', 'Small', 'Micro'],
-        'filter': lambda val: val.lower()
-    },
-    {
-        'type': 'list',
         'name': 'delivery',
         'message': 'Which vehicle you want to use for delivery?',
         'choices': get_delivery_options,
