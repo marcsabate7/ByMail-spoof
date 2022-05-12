@@ -1,16 +1,10 @@
 from __future__ import print_function, unicode_literals
-
-
 from PyInquirer import prompt
-
 from examples import custom_style_2
-
 from doctest import ELLIPSIS_MARKER
 import sys
 import signal
-
 from taser import printx
-
 import config
 import cases
 from additional.common import *
@@ -21,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 from halo import Halo
 from webcopy import websiteCopier
-
+from check_protocols import securityCheck
 #cases = cases.cases
 
 
@@ -324,7 +318,7 @@ def threadExecution(victim_email, verbose_mode,config,cases): # Aqui haurem de p
 
 	#print("[Thread "+ str(victim_email)+"] "+'\033[1m' + str(victim_email) + '\033[0m')
 	if victim_email == "marc-saba@hotmail.com":
-		print("estem esperant")
+		print("Thread amb email "+victim_email +" esta a la espera")
 		time.sleep(10)
 	domain = victim_email.split("@")[1]
 	mail_server_ip = get_mail_server_from_email_address(domain)
@@ -364,6 +358,65 @@ def executor(num_threads,emails, verbose,config,cases):
 	with ThreadPoolExecutor(max_workers=4) as executor:                                                
 		[executor.submit(threadExecution, email, verbose,config,cases)for email in emails]
 
+
+def configurationMenu():
+	exit_loop2 = False
+	while exit_loop2 == False:
+		questions = [
+			{
+				'type': 'list',
+				'name': 'option',
+				'message': 'Choose an option?',
+				'choices': [
+					'1) View victim emails',
+					'2) View all configuration set',
+					'3) View default templates',
+					'4) View payloads',
+					'5) Go back',
+					"\n"
+				]
+			}
+		]
+
+		answers2 = prompt(questions, style=custom_style_2)
+
+		if answers2['option'] == "1) View victim emails":
+			data = []
+			col_names = ["Option", "Value"]
+			emails = read_user_emails()
+			if len(emails) == 0:
+				printx.colored("\n\n[-] Users file is empty, please add victim emails to 'user.txt' file!\n",fg="red")
+			else:
+				final_emails = len(emails)
+				f = open("users.txt","r")
+				all_emails = f.readlines()[0:10]
+				all_emails = ''.join([str(email) for email in all_emails])
+				if final_emails > 50:
+					final_emails = str(final_emails) + "  -  Only showing the firts 50 emails" 
+				final_emails = str(final_emails) + "\n" + str(all_emails)
+
+			data.append(["Emails uploaded", final_emails])
+			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+			print("\n")
+
+		if answers2['option'] == "2) View all configuration set":
+			reportConfig(config.config,cases.cases,False,False,False,False)
+			print("\n")
+
+		if answers2['option'] == "3) View default templates":
+			showTemplates()
+			print("\n")
+
+		if answers2['option'] == "4) View payloads":
+			showPayloads()
+			print("\n")
+
+		if answers2['option'] == "5) Go back":
+			exit_loop2 = True
+			print("\n")
+
+
+
 def optionsMenu():
 	exit_loop = False
 	while exit_loop == False:
@@ -375,17 +428,17 @@ def optionsMenu():
 				'choices': [
 					'1) Send emails (manual configuration)',
 					'2) Website cloner',
-					'3) Get emails from specific domain',
-					'4) View victim emails',
-					'5) View all configuration',
-					'6) View default templates',
-					'7) View payloads',
-					'8) Help',
-					'9) Exit program',
+					'3) Get organization emails from specific domain',
+					'4) Check SPF & DMARC from domain',
+					'5) Get similar DOMAIN & availavility',
+					'6) Configuration',
+					'7) Help',
+					'8) Exit',
+					"\n"
 				]
 			}
 		]
-
+		
 		answers = prompt(questions, style=custom_style_2)
 
 		if answers['option'] == "1) Send emails (manual configuration)":
@@ -440,45 +493,38 @@ def optionsMenu():
 			website_cloner_answers = prompt(questions, style=custom_style_2)
 			websiteCopier(website_cloner_answers["website_url"])
 			sys.exit(0)
-		if answers['option'] == "3) Get emails from specific domain":
-			print("Under development")
-			print("\n")
-		if answers['option'] == "4) View victim emails":
-			data = []
-			col_names = ["Option", "Value"]
-			emails = read_user_emails()
-			if len(emails) == 0:
-				printx.colored("\n\n[-] Users file is empty, please add victim emails to 'user.txt' file!\n",fg="red")
-			else:
-				final_emails = len(emails)
-				f = open("users.txt","r")
-				all_emails = f.readlines()[0:10]
-				all_emails = ''.join([str(email) for email in all_emails])
-				if final_emails > 50:
-					final_emails = str(final_emails) + "  -  Only showing the firts 50 emails" 
-				final_emails = str(final_emails) + "\n" + str(all_emails)
 
-			data.append(["Emails uploaded", final_emails])
-			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+		if answers['option'] == "3) Get organization emails from specific domain":
+			print("Getting emails from domain is under development")
 			print("\n")
 
-		if answers['option'] == "5) View all configuration":
-			reportConfig(config.config,cases.cases,False,False,False,False)
+		if answers['option'] == "4) Check SPF & DMARC from domain":
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input domain to check:',
+					'name': 'domain_check',
+					'default': "",
+				}
+			]
+			domain_checker_answers = prompt(questions, style=custom_style_2)
+			securityCheck(domain_checker_answers["domain_check"])
+			sys.exit(0)
+
+
+		if answers['option'] == "5) Get similar domains from domain":
+			print("Getting similar domains")
 			print("\n")
 
-		if answers['option'] == "6) View default templates":
-			showTemplates()
+		if answers['option'] == "6) Configuration":
+			configurationMenu()
 			print("\n")
 
-		if answers['option'] == "7) View payloads":
-			showPayloads()
-			print("\n")
-
-		if answers['option'] == "8) Help":
+		if answers['option'] == "7) Help":
 			helpPanel()
 			print("\n")
 
-		if answers['option'] == "9) Exit program":
+		if answers['option'] == "8) Exit":
 			end_script()
 
 def main():

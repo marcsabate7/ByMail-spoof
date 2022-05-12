@@ -12,10 +12,8 @@ def update_cases_info(cases, victim_email,config):
     legitimate_site = config["legitimate_site_address"].split(b"@")[1]  #comprobar aixo qeu fique un > de mes al final
     final_cases = update_info(final_cases, b"legitimate.com", legitimate_site)
     print(final_cases)
+    # En aquest punt tots els correus rcptto haurien de ser -> victim@victim.com pero quan un thread ho canvia als altres també NOSE PERQUE
     final_cases = update_info(final_cases, b"victim@victim.com", final_victim_email.encode("utf-8"))
-    if final_victim_email == "marcsabate65@outlook.com":
-        time.sleep(11)
-        print("ya em fet el descans")
 
 
     #print(cases)

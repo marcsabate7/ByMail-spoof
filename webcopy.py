@@ -1,6 +1,7 @@
 from pywebcopy import save_website
 from taser import printx
 import time 
+
 def websiteCopier(website_url):
     counter = 0
     while True:
