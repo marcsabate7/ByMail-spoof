@@ -413,7 +413,6 @@ def configurationMenu():
 
 		if answers2['option'] == "5) Go back":
 			exit_loop2 = True
-			print("\n")
 
 
 
@@ -509,8 +508,6 @@ def optionsMenu():
 			]
 			domain_checker_answers = prompt(questions, style=custom_style_2)
 			securityCheck(domain_checker_answers["domain_check"])
-			sys.exit(0)
-
 
 		if answers['option'] == "5) Get similar domains from domain":
 			print("Getting similar domains")
@@ -518,7 +515,6 @@ def optionsMenu():
 
 		if answers['option'] == "6) Configuration":
 			configurationMenu()
-			print("\n")
 
 		if answers['option'] == "7) Help":
 			helpPanel()
