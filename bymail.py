@@ -16,6 +16,7 @@ import json
 from halo import Halo
 from webcopy import websiteCopier
 from check_protocols import securityCheck
+from email_finder import emailFinder
 #cases = cases.cases
 
 
@@ -494,7 +495,16 @@ def optionsMenu():
 			sys.exit(0)
 
 		if answers['option'] == "3) Get organization emails from specific domain":
-			print("Getting emails from domain is under development")
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input domain:',
+					'name': 'domain_check',
+					'default': "",
+				}
+			]
+			finder_emails = prompt(questions, style=custom_style_2)
+			emailFinder(finder_emails["domain_check"])
 			print("\n")
 
 		if answers['option'] == "4) Check SPF & DMARC from domain":

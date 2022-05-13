@@ -138,8 +138,8 @@ def securityCheck(domain):
 	client_email = checkSpf(domain)
 	#print("\n")
 	checkDmarc(domain)
-	print("\n")
-	if client_email != "":
+	if client_email != None:
+		print("\n")
 		printx.colored("[✔] "+domain+" is using "+'\033[1m' + str(client_email) + '\033[1m',fg="green")
 	print("\n")
 	printx.colored("[+] For get DKIM records is needed the selector from the email header\n", fg="blue")
