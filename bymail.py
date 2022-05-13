@@ -373,12 +373,11 @@ def configurationMenu():
 					'2) View all configuration set',
 					'3) View default templates',
 					'4) View payloads',
-					'5) Go back',
-					"\n"
+					'5) Go back'
 				]
 			}
 		]
-
+		print("\n")
 		answers2 = prompt(questions, style=custom_style_2)
 
 		if answers2['option'] == "1) View victim emails":
@@ -428,17 +427,16 @@ def optionsMenu():
 				'choices': [
 					'1) Send emails (manual configuration)',
 					'2) Website cloner',
-					'3) Get organization emails from specific domain',
-					'4) Check SPF & DMARC from domain',
-					'5) Get similar DOMAIN & availavility',
+					'3) Get emails from domain',
+					'4) Check domain security (SPF,DMARC,DKIM...)',
+					"5) Get similar DOMAIN's & availavility",
 					'6) Configuration',
 					'7) Help',
-					'8) Exit',
-					"\n"
+					'8) Exit'
 				]
 			}
 		]
-		
+		print("\n")
 		answers = prompt(questions, style=custom_style_2)
 
 		if answers['option'] == "1) Send emails (manual configuration)":
@@ -494,7 +492,7 @@ def optionsMenu():
 			websiteCopier(website_cloner_answers["website_url"])
 			sys.exit(0)
 
-		if answers['option'] == "3) Get organization emails from specific domain":
+		if answers['option'] == "3) Get emails from domain":
 			questions = [
 				{
 					'type': 'input',
@@ -507,7 +505,7 @@ def optionsMenu():
 			emailFinder(finder_emails["domain_check"])
 			print("\n")
 
-		if answers['option'] == "4) Check SPF & DMARC from domain":
+		if answers['option'] == "4) Check domain security (SPF,DMARC,DKIM...)":
 			questions = [
 				{
 					'type': 'input',
@@ -519,7 +517,7 @@ def optionsMenu():
 			domain_checker_answers = prompt(questions, style=custom_style_2)
 			securityCheck(domain_checker_answers["domain_check"])
 
-		if answers['option'] == "5) Get similar domains from domain":
+		if answers['option'] == "5) Get similar DOMAIN's & availavility":
 			print("Getting similar domains")
 			print("\n")
 
