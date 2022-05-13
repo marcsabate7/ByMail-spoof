@@ -5,6 +5,8 @@ import json
 from PyInquirer import prompt
 from examples import custom_style_2
 from tabulate import tabulate
+import time
+
 
 def checkGeneralInfo(domain):
 	col_names1 = ["A record (IP)"]
@@ -14,20 +16,20 @@ def checkGeneralInfo(domain):
 	result = dns.resolver.resolve(domain, 'A')
 
 	if len(result)!= 0:
+		printx.colored("[✔] A records found: "+ str(len(result)),fg="green")
 		for vals in result:
 			data1.append([vals.to_text()])
 		print(tabulate(data1, headers=col_names1, tablefmt="fancy_grid"))
 	else:
 		printx.colored("[✖] No A records found for "+'\033[1m' + str(domain) + '\033[1m' +"...", fg="red")
-	print("\n")
 
-	col_names2 = ["Preference", "MX Server"]
+	col_names2 = ["Priority", "MX Server"]
 	data2 = []
 
 	printx.colored("\n[+] Getting MX records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
 	answers = dns.resolver.query(domain, 'MX')
 	if len(answers) !=0:
-		printx.colored("[✔] Servers found: "+ str(len(answers)),fg="green")
+		printx.colored("[✔] MX records found: "+ str(len(answers)),fg="green")
 		for answer in answers:
 			data = str(answer)
 			data = data.split(" ")
@@ -94,6 +96,22 @@ def checkDkim(domain,selector):
 		pass
 
 
+def checkEmailClient(dns_data):
+	dns_data = str(dns_data)
+	client_use = ""
+	if dns_data.find('google.com') != -1:
+		client_use = "GMAIL.COM"
+
+	if dns_data.find('outlook.com') != -1:
+		client_use = "OUTLOOK.COM"
+
+	if dns_data.find('yahoo.com') != -1:
+		client_use = "YAHOO.COM"
+
+	return client_use
+
+
+
 def checkSpf(domain):
 	printx.colored("\n[+] Getting SPF record from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
 	col_names = ["SPF value"]
@@ -105,6 +123,8 @@ def checkSpf(domain):
 				data.append([dns_data])
 				printx.colored("[✔] SPF record found: ",fg="green")
 				print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+				client_email = checkEmailClient(dns_data)
+				return client_email
 		if len(data) == 0:
 			printx.colored("[✖] SPF record not found", fg="red")
 	except:
@@ -114,15 +134,19 @@ def checkSpf(domain):
 
 def securityCheck(domain):
 	checkGeneralInfo(domain)
-	print("\n")
-	checkSpf(domain)
-	print("\n")
+	#print("\n")
+	client_email = checkSpf(domain)
+	#print("\n")
 	checkDmarc(domain)
 	print("\n")
+	if client_email != "":
+		printx.colored("[✔] "+domain+" is using "+'\033[1m' + str(client_email) + '\033[1m',fg="green")
+	print("\n")
+	printx.colored("[+] For get DKIM records is needed the selector from the email header\n", fg="blue")
 	questions = [
 		{
 			'type': 'input',
-			'message': 'To check DKIM protection, introduce selector (press enter to skip):',
+			'message': 'Introduce selector (press enter to skip):',
 			'name': 'dkim',
 			'default': ""
 			'\n'
@@ -133,3 +157,5 @@ def securityCheck(domain):
 		checkDkim(domain,dkim_answers["dkim"])
 	else:
 		printx.colored("[-] Skiping DKIM protocol...\n", fg="red")
+		time.sleep(2)
+		print("\n")
