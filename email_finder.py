@@ -3,10 +3,11 @@ import requests
 from taser import printx
 import json
 import time
-import sys
+import asyncio
+from pyppeteer import launch
 
 api_keys1 = ["6d103ea6d5d7d4b0fe81ab23efbf6e79fb2189fe","9c4f2d7d18ecbc378147e5443f76422e50cd13bd","8f1558da76c8bf09a601b9327d09556f864f8880"]
-api_keys2 = ["77605d0a-0365-40b2-907e-39ab6e5c59b0"]
+api_keys2 = ["77605d0a-0365-40b2-907e-39ab6e5c59b0","df9c2b7e-408d-41e2-b924-8cc793cb1e79"]
 headers = {
     "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/71.0.3578.80 Chrome/71.0.3578.80 Safari/537.36"
 }
@@ -94,23 +95,44 @@ def findMoreEmails(term,api_key, maxresults=1000, buckets=[], timeout=5, datefro
         results2.append(value)
     return results2
 
-def checkLinkedin(domain):
-    url = 'http://www.google.es/search?num=100&start=0&hl=en&meta=&q=site%3Alinkedin.com/in%20' + domain
-    r = requests.get(url, headers = headers)
-    print(r.text)
+
+async def website_search(domain):
+    browser = await launch()
+    page = await browser.newPage()
+    await page.goto('https://phonebook.cz/')
+    content = domain
+    await page.evaluate(f"""() => {{
+        document.getElementById('domain').value = '{content}';
+    }}""")
+
+    await page.click('#submit1')
+    await asyncio.sleep(6)
+    emails = await page.querySelector('pre')
+    final_emails = await page.evaluate('(emails) => emails.textContent', emails)
+    await browser.close()
+    return final_emails
+
+
 
 def emailFinder(domain):
-    '''printx.colored("\n[+] Searching emails for "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
+    printx.colored("\n[+] Searching emails for "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
     first_list = findEmails(domain)
     for key in api_keys2:
         try:
             second_list = findMoreEmails(domain,key)
             if len(second_list) != 0:
                 break
+            else:
+                second_list = []
         except:
-            pass'''
-    checkLinkedin(domain)
-    '''final_list = first_list + second_list
+            pass
+    third_list = asyncio.get_event_loop().run_until_complete(website_search(domain))
+    if 'Daily limit reached' in str(third_list):
+        printx.colored("[✖] Some of the search are failing due to daily rating exceeded, try again in one day an probably more emails will be displayed", fg="red")
+        third_list = []
+    third_list = third_list.split("\n")
+    third_list = third_list[:-1]
+    final_list = first_list + second_list + third_list
     printx.colored("[+] Treating data...",fg="blue")
     last_list = []
     #print(final_list)
@@ -121,4 +143,4 @@ def emailFinder(domain):
     final_new_list = list(set(last_list))
     for email in final_new_list:
         print(email)
-    printx.colored("\n[✔] Found "+'\033[1m' + str(len(final_new_list)) +" emails" '\033[1m' +"!!",fg="green")'''
+    printx.colored("\n[✔] Found "+'\033[1m' + str(len(final_new_list)) +" emails" '\033[1m' +"!!",fg="green")

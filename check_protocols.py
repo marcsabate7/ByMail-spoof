@@ -157,5 +157,5 @@ def securityCheck(domain):
 		checkDkim(domain,dkim_answers["dkim"])
 	else:
 		printx.colored("[-] Skiping DKIM protocol...\n", fg="red")
-		time.sleep(2)
+		time.sleep(1)
 		print("\n")

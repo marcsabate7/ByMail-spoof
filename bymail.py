@@ -17,6 +17,7 @@ from halo import Halo
 from webcopy import websiteCopier
 from check_protocols import securityCheck
 from email_finder import emailFinder
+from similarDomain import sameDomain
 #cases = cases.cases
 
 
@@ -377,7 +378,7 @@ def configurationMenu():
 				]
 			}
 		]
-		print("\n")
+
 		answers2 = prompt(questions, style=custom_style_2)
 
 		if answers2['option'] == "1) View victim emails":
@@ -429,14 +430,15 @@ def optionsMenu():
 					'2) Website cloner',
 					'3) Get emails from domain',
 					'4) Check domain security (SPF,DMARC,DKIM...)',
-					"5) Get similar DOMAIN's & availavility",
-					'6) Configuration',
-					'7) Help',
-					'8) Exit'
+					'5) Check email reputation',
+					"6) Get similar DOMAIN's & availavility",
+					'7) Configuration',
+					'8) Help',
+					'9) Exit'
 				]
 			}
 		]
-		print("\n")
+		
 		answers = prompt(questions, style=custom_style_2)
 
 		if answers['option'] == "1) Send emails (manual configuration)":
@@ -517,18 +519,39 @@ def optionsMenu():
 			domain_checker_answers = prompt(questions, style=custom_style_2)
 			securityCheck(domain_checker_answers["domain_check"])
 
-		if answers['option'] == "5) Get similar DOMAIN's & availavility":
-			print("Getting similar domains")
-			print("\n")
+		if answers['option'] == "5) Check email reputation":
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input email to check:',
+					'name': 'email_check',
+					'default': "",
+				}
+			]
+			email_checker = prompt(questions, style=custom_style_2)
+			print("Email checker")
+			#securityCheck(email_checker["email_check"])
 
-		if answers['option'] == "6) Configuration":
+		if answers['option'] == "6) Get similar DOMAIN's & availavility":
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input domain:',
+					'name': 'similar_domain',
+					'default': "",
+				}
+			]
+			domain_name = prompt(questions, style=custom_style_2)
+			sameDomain(domain_name["similar_domain"])
+
+		if answers['option'] == "7) Configuration":
 			configurationMenu()
 
-		if answers['option'] == "7) Help":
+		if answers['option'] == "8) Help":
 			helpPanel()
 			print("\n")
 
-		if answers['option'] == "8) Exit":
+		if answers['option'] == "9) Exit":
 			end_script()
 
 def main():
