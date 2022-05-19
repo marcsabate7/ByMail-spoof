@@ -1,5 +1,6 @@
 from __future__ import print_function, unicode_literals
 from PyInquirer import prompt
+from check_rep import checkRep,checkIpDomainRep
 from examples import custom_style_2
 from doctest import ELLIPSIS_MARKER
 import sys
@@ -370,18 +371,21 @@ def configurationMenu():
 				'name': 'option',
 				'message': 'Choose an option?',
 				'choices': [
-					'1) View victim emails',
-					'2) View all configuration set',
-					'3) View default templates',
-					'4) View payloads',
-					'5) Go back'
+					'1) Help',
+					'2) View victim emails',
+					'3) View all configuration set',
+					'4) View default templates',
+					'5) View payloads',
+					'6) Go back'
 				]
 			}
 		]
 
 		answers2 = prompt(questions, style=custom_style_2)
-
-		if answers2['option'] == "1) View victim emails":
+		if answers2['option'] == "1) Help":
+			helpPanel()
+			print("\n")
+		if answers2['option'] == "2) View victim emails":
 			data = []
 			col_names = ["Option", "Value"]
 			emails = read_user_emails()
@@ -400,19 +404,19 @@ def configurationMenu():
 			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 			print("\n")
 
-		if answers2['option'] == "2) View all configuration set":
+		if answers2['option'] == "3) View all configuration set":
 			reportConfig(config.config,cases.cases,False,False,False,False)
 			print("\n")
 
-		if answers2['option'] == "3) View default templates":
+		if answers2['option'] == "4) View default templates":
 			showTemplates()
 			print("\n")
 
-		if answers2['option'] == "4) View payloads":
+		if answers2['option'] == "5) View payloads":
 			showPayloads()
 			print("\n")
 
-		if answers2['option'] == "5) Go back":
+		if answers2['option'] == "6) Go back":
 			exit_loop2 = True
 
 
@@ -430,10 +434,10 @@ def optionsMenu():
 					'2) Website cloner',
 					'3) Get emails from domain',
 					'4) Check domain security (SPF,DMARC,DKIM...)',
-					'5) Check email reputation',
-					"6) Get similar DOMAIN's & availavility",
-					'7) Configuration',
-					'8) Help',
+					'5) Check IP/domain reputation',
+					'6) Check email reputation',
+					"7) Get similar DOMAIN's & availavility",
+					'8) Configuration',
 					'9) Exit'
 				]
 			}
@@ -518,8 +522,22 @@ def optionsMenu():
 			]
 			domain_checker_answers = prompt(questions, style=custom_style_2)
 			securityCheck(domain_checker_answers["domain_check"])
-
-		if answers['option'] == "5) Check email reputation":
+			print("\n")
+	
+		if answers['option'] == "5) Check IP/domain reputation":
+			questions = [
+				{
+					'type': 'input',
+					'message': 'Input IP or domain to check:',
+					'name': 'ip_check',
+					'default': "",
+				}
+			]
+			ip_domain_checker = prompt(questions, style=custom_style_2)
+			checkIpDomainRep(ip_domain_checker["ip_check"])
+			print("\n")
+	
+		if answers['option'] == "6) Check email reputation":
 			questions = [
 				{
 					'type': 'input',
@@ -529,10 +547,10 @@ def optionsMenu():
 				}
 			]
 			email_checker = prompt(questions, style=custom_style_2)
-			print("Email checker")
-			#securityCheck(email_checker["email_check"])
-
-		if answers['option'] == "6) Get similar DOMAIN's & availavility":
+			checkRep(email_checker["email_check"])
+			print("\n")
+	
+		if answers['option'] == "7) Get similar DOMAIN's & availavility":
 			questions = [
 				{
 					'type': 'input',
@@ -543,13 +561,10 @@ def optionsMenu():
 			]
 			domain_name = prompt(questions, style=custom_style_2)
 			sameDomain(domain_name["similar_domain"])
-
-		if answers['option'] == "7) Configuration":
-			configurationMenu()
-
-		if answers['option'] == "8) Help":
-			helpPanel()
 			print("\n")
+	
+		if answers['option'] == "8) Configuration":
+			configurationMenu()
 
 		if answers['option'] == "9) Exit":
 			end_script()

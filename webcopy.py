@@ -1,9 +1,11 @@
 from pywebcopy import save_website
 from taser import printx
 import time 
+import requests
 
 def websiteCopier(website_url):
     counter = 0
+
     while True:
         if counter == 3:
             printx.colored("[-] Maxium intents exceeded, we can't clone this website. Try with HTTrack!\n\n",fg="red")

@@ -12,7 +12,7 @@ def checkGeneralInfo(domain):
 	col_names1 = ["A record (IP)"]
 	data1 = []
 
-	printx.colored("\n[+] Getting A servers from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
+	printx.colored("\n[+] Getting A records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
 	result = dns.resolver.resolve(domain, 'A')
 
 	if len(result)!= 0:
@@ -22,6 +22,21 @@ def checkGeneralInfo(domain):
 		print(tabulate(data1, headers=col_names1, tablefmt="fancy_grid"))
 	else:
 		printx.colored("[✖] No A records found for "+'\033[1m' + str(domain) + '\033[1m' +"...", fg="red")
+
+
+	col_names2 = ["NS Records"]
+	data2 = []
+	printx.colored("\n[+] Getting NS records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
+	answers = dns.resolver.query(domain, 'NS')
+	if len(answers) !=0:
+		printx.colored("[✔] NS records found: "+ str(len(answers)),fg="green")
+		for answer in answers:
+			data = str(answer)
+			data2.append([data])
+		print(tabulate(data2, headers=col_names2, tablefmt="fancy_grid"))
+	else:
+		printx.colored("[✖] No NS records found for "+'\033[1m' + str(domain) + '\033[1m' +"...", fg="red")
+
 
 	col_names2 = ["Priority", "MX Server"]
 	data2 = []
@@ -37,6 +52,7 @@ def checkGeneralInfo(domain):
 		print(tabulate(data2, headers=col_names2, tablefmt="fancy_grid"))
 	else:
 		printx.colored("[✖] No MX records found for "+'\033[1m' + str(domain) + '\033[1m' +"...", fg="red")
+
 
 def checkDmarc(domain):
 	printx.colored("\n[+] Getting DMARC records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
@@ -133,29 +149,32 @@ def checkSpf(domain):
 
 
 def securityCheck(domain):
-	checkGeneralInfo(domain)
-	#print("\n")
-	client_email = checkSpf(domain)
-	#print("\n")
-	checkDmarc(domain)
-	if client_email != None:
+	try:
+		checkGeneralInfo(domain)
+		#print("\n")
+		client_email = checkSpf(domain)
+		#print("\n")
+		checkDmarc(domain)
+		if client_email != None:
+			print("\n")
+			printx.colored("[✔] "+domain+" is using "+'\033[1m' + str(client_email) + '\033[1m',fg="green")
 		print("\n")
-		printx.colored("[✔] "+domain+" is using "+'\033[1m' + str(client_email) + '\033[1m',fg="green")
-	print("\n")
-	printx.colored("[+] For get DKIM records is needed the selector from the email header\n", fg="blue")
-	questions = [
-		{
-			'type': 'input',
-			'message': 'Introduce selector (press enter to skip):',
-			'name': 'dkim',
-			'default': ""
-			'\n'
-		}
-	]
-	dkim_answers = prompt(questions, style=custom_style_2)
-	if dkim_answers["dkim"] != "" and dkim_answers["dkim"] != " " and dkim_answers["dkim"] != "\n":
-		checkDkim(domain,dkim_answers["dkim"])
-	else:
-		printx.colored("[-] Skiping DKIM protocol...\n", fg="red")
-		time.sleep(1)
-		print("\n")
+		printx.colored("[+] For get DKIM records is needed the selector from the email header\n", fg="blue")
+		questions = [
+			{
+				'type': 'input',
+				'message': 'Introduce selector (press enter to skip):',
+				'name': 'dkim',
+				'default': ""
+				'\n'
+			}
+		]
+		dkim_answers = prompt(questions, style=custom_style_2)
+		if dkim_answers["dkim"] != "" and dkim_answers["dkim"] != " " and dkim_answers["dkim"] != "\n":
+			checkDkim(domain,dkim_answers["dkim"])
+		else:
+			printx.colored("[-] Skiping DKIM protocol...\n", fg="red")
+			time.sleep(1)
+			print("\n")
+	except:
+		printx.colored("[-] This domain doesn't exist...\n", fg="red")

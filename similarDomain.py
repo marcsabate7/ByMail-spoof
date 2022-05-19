@@ -62,6 +62,22 @@ def vowelSwepper(domain):
 				list.append(domain[:i] + vowel + domain[i+1:])
 	return list
 
+def iSwepper(domain):
+	list = []
+	vowels = 'i'
+	for i in range(0, len(domain)):
+		if domain[i] in vowels:
+			list.append(domain[:i] + 'l' + domain[i+1:])
+	return list
+
+def lSwepper(domain):
+	list = []
+	vowels = 'l'
+	for i in range(0, len(domain)):
+		if domain[i] in vowels:
+			list.append(domain[:i] + 'i' + domain[i+1:])
+	return list
+
 qwerty = {
 	'1': '2q', '2': '3wq1', '3': '4ew2', '4': '5re3', '5': '6tr4', '6': '7yt5', '7': '8uy6', '8': '9iu7', '9': '0oi8', '0': 'po9',
 	'q': '12wa', 'w': '3esaq2', 'e': '4rdsw3', 'r': '5tfde4', 't': '6ygfr5', 'y': '7uhgt6', 'u': '8ijhy7', 'i': '9okju8', 'o': '0plki9', 'p': 'lo0',
@@ -105,7 +121,9 @@ def sameDomain(domain):
 	f7 = bitReplacement(first_part_domain)
 	f8 = transposition(first_part_domain)
 	f9 = vowelSwepper(first_part_domain)
-	final_list = list(f) + list(f2) + list(f3) + list(f4) + list(f5) + list(f6) + list(f7) + list(f8) + list(f9)
+	f10 = iSwepper(first_part_domain)
+	f11 = lSwepper(first_part_domain)
+	final_list = list(f) + list(f2) + list(f3) + list(f4) + list(f5) + list(f6) + list(f7) + list(f8) + list(f9) + list(f10) + list(f11)
 	new_final_list = list(set(final_list))
 	new_final_list2 = []
 	for elem in new_final_list:
