@@ -149,7 +149,13 @@ def checkSpf(domain):
 
 
 def securityCheck(domain):
+	domain_existance = True
 	try:
+		result = dns.resolver.resolve(domain, 'A')
+	except:
+		domain_existance = False
+	
+	if domain_existance == True:
 		checkGeneralInfo(domain)
 		#print("\n")
 		client_email = checkSpf(domain)
@@ -176,5 +182,5 @@ def securityCheck(domain):
 			printx.colored("[-] Skiping DKIM protocol...\n", fg="red")
 			time.sleep(1)
 			print("\n")
-	except:
+	else:
 		printx.colored("[-] This domain doesn't exist...\n", fg="red")
