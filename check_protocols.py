@@ -6,6 +6,7 @@ from PyInquirer import prompt
 from examples import custom_style_2
 from tabulate import tabulate
 import time
+import socket
 
 
 def checkGeneralInfo(domain):
@@ -58,6 +59,7 @@ def checkDmarc(domain):
 	printx.colored("\n[+] Getting DMARC records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
 
 	url = "https://api.mxtoolbox.com/api/v1/Lookup/dmarc/?argument="+domain.strip()+"&port=443"
+	#'https://mxtoolbox.com/api/v1/lookup/bimi/paypal.com';
 	headers = {
 		"Authorization":"76ad213f-524c-4d5c-a2ee-9c4e9de62de0"
 	}
@@ -147,21 +149,51 @@ def checkSpf(domain):
 		printx.colored("[✖] SPF record not found", fg="red")
 		pass
 
+def checkBimi(domain):
+	printx.colored("\n[+] Getting BIMI records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
+
+	url = "https://api.mxtoolbox.com/api/v1/Lookup/bimi/?argument="+domain.strip()+"&port=443"
+	#'https://mxtoolbox.com/api/v1/lookup/bimi/paypal.com';
+	headers = {
+		"Authorization":"76ad213f-524c-4d5c-a2ee-9c4e9de62de0"
+	}
+	final_bimi = []
+	col_names = ["BIMI value"]
+	data = []
+	r = requests.get(url, headers=headers)
+	response = json.loads(r.text)
+	if len(response["Failed"]) != 0:
+		printx.colored("[✖] BIMI record not found", fg="red")
+	else:
+		printx.colored("[✔] BIMI record found: ",fg="green")
+
+		try:
+			if response["Information"][0]["Name"] == "record":
+				bimi_record = response["Information"][0]["Description"]
+				data.append([bimi_record])
+		except: 
+			pass
+		
+		if str("a=") in bimi_record:
+			print("[+] "+str(domain)+" is using Verified Mark Certificate (VMC) -> check 'a=' tag in the record below")
+		
+
+		print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
+
 
 def securityCheck(domain):
 	domain_existance = True
 	try:
-		result = dns.resolver.resolve(domain, 'A')
+		result = socket.gethostbyname(domain)
 	except:
 		domain_existance = False
 	
 	if domain_existance == True:
 		checkGeneralInfo(domain)
-		#print("\n")
 		client_email = checkSpf(domain)
-		#print("\n")
 		checkDmarc(domain)
-		if client_email != None:
+		checkBimi(domain)
+		if client_email != "":
 			print("\n")
 			printx.colored("[✔] "+domain+" is using "+'\033[1m' + str(client_email) + '\033[1m',fg="green")
 		print("\n")
@@ -183,4 +215,4 @@ def securityCheck(domain):
 			time.sleep(1)
 			print("\n")
 	else:
-		printx.colored("[-] This domain doesn't exist...\n", fg="red")
+		printx.colored("[✖] This domain doesn't exist\n", fg="red")

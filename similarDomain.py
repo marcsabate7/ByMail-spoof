@@ -1,9 +1,9 @@
 from taser import printx
-import requests
 import dns
 from tqdm import tqdm
-import time
 import sys
+import requests
+import socket
 from tabulate import tabulate
 
 def add(domain):
@@ -102,54 +102,62 @@ keyboards = [qwerty, qwertz, azerty]
 
 def checkIfDomainExists(domain):
 	try:
-		result = dns.resolver.resolve(domain, 'A')
+		result = socket.gethostbyname(domain)
+		return True
 	except:
-		printx.colored("[✖] This domain not exist!", fg="red")
-		sys.exit(1)
+		printx.colored("[✖] This domain doesn't exist!", fg="red")
+		result = input("-> You want to proceed? (Y/N): ")
+		if result == "Y" or result == "y" or result == "YES" or result == "yes" or result == "Yes":
+			return True
+		else:
+			return False
+
+
 
 def sameDomain(domain):
-	checkIfDomainExists(domain)
-	printx.colored("\n[+] Generating similar domains for "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
-	partial_domain = domain.split(".",1)
-	first_part_domain = partial_domain[0]
-	f = add(first_part_domain)
-	f2 = bitChanger(first_part_domain)
-	f3 = bithype(first_part_domain)
-	f4 = bitInsertion(first_part_domain)
-	f5 = bitOmit(first_part_domain)
-	f6 = bitRepeat(first_part_domain)
-	f7 = bitReplacement(first_part_domain)
-	f8 = transposition(first_part_domain)
-	f9 = vowelSwepper(first_part_domain)
-	f10 = iSwepper(first_part_domain)
-	f11 = lSwepper(first_part_domain)
-	final_list = list(f) + list(f2) + list(f3) + list(f4) + list(f5) + list(f6) + list(f7) + list(f8) + list(f9) + list(f10) + list(f11)
-	new_final_list = list(set(final_list))
-	new_final_list2 = []
-	for elem in new_final_list:
-		elem = elem + "."+partial_domain[1]
-		new_final_list2.append(elem)
-	printx.colored("[✔] Domains generated, checking availavility...\n ",fg="green")
-	complete_list = []
-	for i in tqdm(range(len(new_final_list2))):
-		try:
-			result = ""
-			result2 = dns.resolver.resolve(new_final_list2[i], 'A')
-			answers = dns.resolver.query(new_final_list2[i], 'MX')
-			if len(answers) !=0:
-				for answer in answers:
-					data = str(answer)
-					data = data.split(" ")
-					if result == "":
-						result = data[1]
-					else: 
-						result = result + " / " + data[1]
-		except:
-			result = "\033[1;32;40mAVAILABLE!\033[0m"
-		complete_list.append([new_final_list2[i], result])
-	print("\n")
-	col_names = ["DOMAIN", "AVAILABILITY"]
-	print(tabulate(complete_list, headers=col_names))
-	print("\n\n")
+	existance = checkIfDomainExists(domain)
+	if existance == True:
+		printx.colored("\n[+] Generating similar domains for "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
+		partial_domain = domain.split(".",1)
+		first_part_domain = partial_domain[0]
+		f = add(first_part_domain)
+		f2 = bitChanger(first_part_domain)
+		f3 = bithype(first_part_domain)
+		f4 = bitInsertion(first_part_domain)
+		f5 = bitOmit(first_part_domain)
+		f6 = bitRepeat(first_part_domain)
+		f7 = bitReplacement(first_part_domain)
+		f8 = transposition(first_part_domain)
+		f9 = vowelSwepper(first_part_domain)
+		f10 = iSwepper(first_part_domain)
+		f11 = lSwepper(first_part_domain)
+		final_list = list(f) + list(f2) + list(f3) + list(f4) + list(f5) + list(f6) + list(f7) + list(f8) + list(f9) + list(f10) + list(f11)
+		new_final_list = list(set(final_list))
+		new_final_list2 = []
+		for elem in new_final_list:
+			elem = elem + "."+partial_domain[1]
+			new_final_list2.append(elem)
+		printx.colored("[✔] Domains generated, checking availavility...\n ",fg="green")
+		complete_list = []
+		for i in tqdm(range(len(new_final_list2))):
+			try:
+				result = ""
+				result2 = dns.resolver.resolve(new_final_list2[i], 'A')
+				answers = dns.resolver.query(new_final_list2[i], 'MX')
+				if len(answers) !=0:
+					for answer in answers:
+						data = str(answer)
+						data = data.split(" ")
+						if result == "":
+							result = data[1]
+						else: 
+							result = result + " / " + data[1]
+			except:
+				result = "\033[1;32;40mAVAILABLE!\033[0m"
+			complete_list.append([new_final_list2[i], result])
+		print("\n")
+		col_names = ["DOMAIN", "AVAILABILITY"]
+		print(tabulate(complete_list, headers=col_names))
+		print("\n\n")
 
 

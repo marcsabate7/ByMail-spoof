@@ -1,28 +1,63 @@
-from __future__ import print_function, unicode_literals
-from PyInquirer import prompt
-from check_rep import checkRep,checkIpDomainRep
+from additional.common import *
+from additional.sendmail import *
+import subprocess
+try:
+	from PyInquirer import prompt
+except:
+	pass
+try:
+	from check_rep import checkRep,checkIpDomainRep
+except:
+	pass
 from examples import custom_style_2
 from doctest import ELLIPSIS_MARKER
 import sys
 import signal
-from taser import printx
+try:
+	from taser import printx
+except: 
+	pass
 import config
 import cases
-from additional.common import *
-from additional.sendmail import *
-from tabulate import tabulate
+try:	
+	from tabulate import tabulate
+except:
+	pass
 from builder import update_cases_info,generate_smtp_seqs
-from concurrent.futures import ThreadPoolExecutor
+try:
+	from concurrent.futures import ThreadPoolExecutor
+except:
+	pass
 import json
-from halo import Halo
-from webcopy import websiteCopier
-from check_protocols import securityCheck
-from email_finder import emailFinder
-from similarDomain import sameDomain
-#cases = cases.cases
-
-
-
+try:
+	import requests
+except:
+	pass
+try:
+	import wget
+except:
+	pass
+import os
+try:
+	from halo import Halo
+except:
+	pass
+try:
+	from webcopy import websiteCopier
+except:
+	pass
+try:
+	from check_protocols import securityCheck
+except:
+	pass
+try:
+	from email_finder import emailFinder
+except:
+	pass
+try:	
+	from similarDomain import sameDomain
+except:
+	pass
 
 def def_handler(sig, frame):
 	printx.colored("\n\n[-] Closing program...\n",fg="red")
@@ -120,8 +155,74 @@ def reportConfig(config, cases,verbose, proxy_list,proxy_file, logs):
 	print("\n")
 
 def showTemplates():
-	print("\n")
-	print("List of templates:")
+		questions = [
+			{
+				'type': 'list',
+				'name': 'option',
+				'message': 'Select template',
+				'choices': [
+					'1) Adobe',
+					'2) Amazon',
+					'3) Badoo',
+					'4) Discord',
+					'5) Ebay',
+					'6) Facebook',
+					'7) FB_messenger',
+					'8) Freefire',
+					'9) Github',
+					'10) Gitlab',
+					'11) Google',
+					'12) Google_new',
+					'13) Google_poll',
+					'14) Icloud',
+					'15) Instagram',
+					'16) Linkedin',
+					'17) Mediafire',
+					'18) Messenger',
+					'19) Netflix',
+					'20) Outlook',
+					'21) Playstation',
+					'22) ProtonMail',
+					'23) Reddit',
+					'24) Shopify',
+					'25) Snapchat',
+					'26) Snapchat2',
+					'27) Socialclub',
+					'28) Spotify',
+					'29) StackOverflow',
+					'30) Steam',
+					'31) Telegram',
+					'32) Tiktok',
+					'33) Twitch',
+					'34) Twitter',
+					'35) Wordpress',
+					'36) Xbox',
+					'37) Yahoo',
+					'38) Yandex',
+					'39) Youtube',
+					'40) Go back'
+				]
+			}
+		]
+
+		answers2 = prompt(questions, style=custom_style_2)
+		answer = answers2["option"]
+		if answer == "40) Go back":
+			pass
+		else:
+			answer = answers2["option"].split(" ")
+			answer = answer[1]
+			answer = answer.lower()
+			printx.colored("[+] Starting downloading template: "+'\033[1m' + str(answer) + '\033[1m' +"...",fg="blue")
+
+			url = "https://github.com/marcsabate7/Files/raw/main/phishing_templates/"+str(answer)+".zip"
+			try:
+				file = wget.download(url)
+				printx.colored("\n\n[✔] Template downloaded succesfully!",fg="green")
+				print("  - Saved in the same directory")
+			except:
+				printx.colored("[-] An error has ocurred when downloading the template, try again later...",fg="red")
+		
 
 def showPayloads():
 	print("\n")
@@ -372,10 +473,10 @@ def configurationMenu():
 				'message': 'Choose an option?',
 				'choices': [
 					'1) Help',
-					'2) View victim emails',
-					'3) View all configuration set',
-					'4) View default templates',
-					'5) View payloads',
+					'2) View templates',
+					'3) View payloads',
+					'4) View victim emails',
+					'5) Check all configuration set',
 					'6) Go back'
 				]
 			}
@@ -385,7 +486,14 @@ def configurationMenu():
 		if answers2['option'] == "1) Help":
 			helpPanel()
 			print("\n")
-		if answers2['option'] == "2) View victim emails":
+
+		if answers2['option'] == "2) View templates":
+			showTemplates()
+
+		if answers2['option'] == "3) View payloads":
+			showPayloads()
+
+		if answers2['option'] == "4) View victim emails":
 			data = []
 			col_names = ["Option", "Value"]
 			emails = read_user_emails()
@@ -404,18 +512,10 @@ def configurationMenu():
 			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 			print("\n")
 
-		if answers2['option'] == "3) View all configuration set":
+		if answers2['option'] == "3) Check all configuration set":
 			reportConfig(config.config,cases.cases,False,False,False,False)
 			print("\n")
-
-		if answers2['option'] == "4) View default templates":
-			showTemplates()
-			print("\n")
-
-		if answers2['option'] == "5) View payloads":
-			showPayloads()
-			print("\n")
-
+			
 		if answers2['option'] == "6) Go back":
 			exit_loop2 = True
 
@@ -433,7 +533,7 @@ def optionsMenu():
 					'1) Send emails (manual configuration)',
 					'2) Website cloner',
 					'3) Get emails from domain',
-					'4) Check domain security (SPF,DMARC,DKIM...)',
+					'4) Check domain security (SPF,DMARC,DKIM,BIMI...)',
 					'5) Check IP/domain reputation',
 					'6) Check email reputation',
 					"7) Get similar DOMAIN's & availavility",
@@ -511,7 +611,7 @@ def optionsMenu():
 			emailFinder(finder_emails["domain_check"])
 			print("\n")
 
-		if answers['option'] == "4) Check domain security (SPF,DMARC,DKIM...)":
+		if answers['option'] == "4) Check domain security (SPF,DMARC,DKIM,BIMI...)":
 			questions = [
 				{
 					'type': 'input',
@@ -569,13 +669,32 @@ def optionsMenu():
 		if answers['option'] == "9) Exit":
 			end_script()
 
+def checkModules():
+	modules_list = ["dns","emailrep","halo","PyInquirer","pyppeteer","pywebcopy","requests","tabulate","taser","tqdm","tweepy","wget"]
+	for module in modules_list:
+		command = "import "+str(module)
+		try:
+			with open(os.devnull, 'wb') as devnull:
+				p = subprocess.check_call(['python', '-c',str(command)], stdout=devnull, stderr=subprocess.STDOUT)
+		except:
+			printx.colored("[!] Modules missing, proceeding to the installation...",fg="red")
+			print("[+] Installing "+ str(module)+" module...")
+			try:
+				with open(os.devnull, 'wb') as devnull:
+					p = subprocess.check_call(['pip3', 'install',str(module)], stdout=devnull, stderr=subprocess.STDOUT)
+			except:
+				printx.colored("[!] You don't have pip/pip3 for python installed, please install it before start!",fg="red")
+				sys.exit(1)
+
+		
 def main():
+	checkModules()
 	banner()
-	
+
 	args = parse_args()
 	if args["args_counter"] == 0:
 		args = optionsMenu()
-		print(args)
+		#print(args)
 
 		proxy = False
 		if args["proxy_file"] != "":

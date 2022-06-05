@@ -9,3 +9,4 @@ tabulate==0.8.9
 taser==0.3.3
 tqdm==4.64.0
 tweepy==3.8.0
+wget==3.2
