@@ -489,7 +489,7 @@ def threadExecution(victim_email,num_thread,total_threads,verbose_mode,log_mode,
 	# Mirar de pasar el verbose mode i el log mode per controlarho des de els sockets
 	# Mirar de utilitzar socksiPy
 	send_mail = SendMail()
-	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode)
+	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode, log = log_mode)
 	send_mail.send_email()
 	now = datetime.now()
 	dt_string = now.strftime("%H:%M:%S")
