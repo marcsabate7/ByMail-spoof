@@ -1,6 +1,12 @@
+from multiprocessing.dummy import current_process
 from additional.common import *
 from additional.sendmail import *
 import subprocess
+import copy
+try:
+	import threading
+except:
+	pass
 try:
 	from PyInquirer import prompt
 except:
@@ -58,6 +64,11 @@ try:
 	from similarDomain import sameDomain
 except:
 	pass
+try:
+	from datetime import datetime
+except:
+	pass
+sem = threading.Semaphore()
 
 def def_handler(sig, frame):
 	printx.colored("\n\n[-] Closing program...\n",fg="red")
@@ -66,6 +77,17 @@ def def_handler(sig, frame):
 # Ctrl+C
 signal.signal(signal.SIGINT, def_handler)
 
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
 
 def banner():
 	print("")
@@ -219,9 +241,10 @@ def showTemplates():
 			try:
 				file = wget.download(url)
 				printx.colored("\n\n[✔] Template downloaded succesfully!",fg="green")
-				print("  - Saved in the same directory")
+				print("  - Saved in the same directory as: "+'\033[1m' + str(answer) + ".zip"+'\033[1m' +"...")
 			except:
 				printx.colored("[-] An error has ocurred when downloading the template, try again later...",fg="red")
+			print("\n")
 		
 
 def showPayloads():
@@ -417,51 +440,67 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 		sys.exit(1)
 
 
-def threadExecution(victim_email, verbose_mode,config,cases): # Aqui haurem de pasar la config
-	#print("[Thread "+ str(email_number+1)+"] "+ victim_email)
-
-	#print("[Thread "+ str(victim_email)+"] "+'\033[1m' + str(victim_email) + '\033[0m')
-	if victim_email == "marc-saba@hotmail.com":
-		print("Thread amb email "+victim_email +" esta a la espera")
-		time.sleep(10)
+def threadExecution(victim_email,num_thread,total_threads,verbose_mode,log_mode,config): # Aqui haurem de pasar la config
+	prova = int(num_thread) % int(total_threads)
+	if prova == 0:prova = total_threads
+	now = datetime.now()
+	dt_string = now.strftime("%H:%M:%S")
+	sem.acquire()
+	print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Sending email to: " +color.BOLD +str(victim_email)+color.END)
+	sem.release()
+	if verbose_mode == True:
+		now = datetime.now()
+		dt_string = now.strftime("%H:%M:%S")
+		sem.acquire()
+		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Getting MX IP address for domain...")
+		sem.release()
 	domain = victim_email.split("@")[1]
 	mail_server_ip = get_mail_server_from_email_address(domain)
+	if verbose_mode == True:
+		now = datetime.now()
+		dt_string = now.strftime("%H:%M:%S")
+		sem.acquire()
+		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"IP address obtained: " +color.BOLD +str(mail_server_ip)+color.END)
+		sem.release()
 	#print(mail_server_ip)
 
 	mail_server_port = config["server_mode"]['recv_mail_server_port']
 	starttls = config['server_mode']['starttls']
 
-	different_cases = cases
-	#print("\n")
-	#print(different_cases)
-	#print("\n")
-	
-	different_cases = update_cases_info(different_cases,victim_email,config)
-	
-	#print(different_cases)
+	news_cases = copy.deepcopy(cases.cases)
 
-	'''sys.exit(1)
-	smtp_seqs = generate_smtp_seqs(cases)
-
-	smtp_seqs = str(smtp_seqs)	# eliminar aquesta linia
-	print(smtp_seqs)
-	#print("["+ str(email_number+1)+ "]" +smtp_seqs)
+	different_return = update_cases_info(news_cases,victim_email,config)
+	if verbose_mode == True:
+		now = datetime.now()
+		dt_string = now.strftime("%H:%M:%S")
+		sem.acquire()
+		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Generating SMTP data sequence...")
+		sem.release()
+	smtp_seqs = generate_smtp_seqs(different_return)
 
 	message_content = smtp_seqs["msg_content"]
-	message_content = str(message_content)	# eliminar aquesta linia
 	#print("["+ str(email_number+1)+ "]" +message_content)
-	sys.exit(1)
+	if verbose_mode == True:
+		now = datetime.now()
+		dt_string = now.strftime("%H:%M:%S")
+		sem.acquire()
+		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Opening socket and sending data...")
+		sem.release()
+	# Mirar de pasar el verbose mode i el log mode per controlarho des de els sockets
+	# Mirar de utilitzar socksiPy
 	send_mail = SendMail()
 	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode)
 	send_mail.send_email()
-	last_victim_email = victim_email
-	printx.colored("[✔] Email sent succesfully to: "+str(victim_email),fg="green")
-	print("\n")'''
+	now = datetime.now()
+	dt_string = now.strftime("%H:%M:%S")
+	sem.acquire()
+	print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +color.GREEN +"Email sent successfully to: "+str(victim_email) +color.END)
+	sem.release()
 
-def executor(num_threads,emails, verbose,config,cases):
-	with ThreadPoolExecutor(max_workers=4) as executor:                                                
-		[executor.submit(threadExecution, email, verbose,config,cases)for email in emails]
 
+def executor(num_threads,emails,verbose,logs,config):
+	with ThreadPoolExecutor(max_workers=num_threads) as executor:                                                
+		[executor.submit(threadExecution, emails[i],i+1,num_threads, verbose,logs,config) for i in range(len(emails))]
 
 def configurationMenu():
 	exit_loop2 = False
@@ -712,6 +751,7 @@ def main():
 		configuration["server_mode"]["starttls"] = chiper_status
 
 		print("\n")
+		# ARREGLAR AQUI, FICAR COMPROBACIÓ DIRECTAMENT
 		while True:
 			emails = read_user_emails()
 			if len(emails) !=0:
@@ -740,9 +780,8 @@ def main():
 
 	last_victim_email = "victim@victim.com"
 
-	final_cases = cases.cases
+	executor(args["num_threads"],emails, args["verbose"],args["logs"],configuration)
 
-	executor(args["num_threads"],emails, args["verbose"],configuration,final_cases)
 	sys.exit()
 	for victim_email in emails:
 		print("[+] Sending email to: "+'\033[1m' + str(victim_email) + '\033[0m')

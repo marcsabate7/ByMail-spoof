@@ -15,11 +15,13 @@ class SendMail(object):
 		self.mail_from = ""
 		self.starttls = False
 		self.verbose = False
+		self.log = False
+		self.screen_report=[]
 
 		self.client_socket = None
 		self.tls_socket = None
 	
-	def set_mail_info(self, mail_server, rcpt_to, email_data, helo, mail_from, starttls=False, verbose=False):
+	def set_mail_info(self, mail_server, rcpt_to, email_data, helo, mail_from, starttls=False, verbose=False,log = False):
 		self.mail_server = mail_server
 		self.rcpt_to = rcpt_to
 		self.email_data = email_data
@@ -27,6 +29,7 @@ class SendMail(object):
 		self.mail_from = mail_from
 		self.starttls = starttls
 		self.verbose = verbose
+		self.log = log
 
 
 	def read_line(self, sock):
@@ -40,11 +43,13 @@ class SendMail(object):
 
 	def print_send_msg(self, msg):
 		if self.verbose!=False:
-			print("<<< " + msg)
+			self.screen_report.add("<<< " + msg)
+			#print("<<< " + msg)
 
 
 	def print_recv_msg(self, client_socket):
 		if self.verbose != False:
+			self.screen_report.add("<<< " + msg)
 			print("\033[91m"+">>> ", end='')
 		time.sleep(1)
 

@@ -1,5 +1,6 @@
 from taser import printx
 import dns
+from dns import resolver
 import requests
 import json
 from PyInquirer import prompt
@@ -7,14 +8,14 @@ from examples import custom_style_2
 from tabulate import tabulate
 import time
 import socket
-
+import sys
 
 def checkGeneralInfo(domain):
 	col_names1 = ["A record (IP)"]
 	data1 = []
 
 	printx.colored("\n[+] Getting A records from "+'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
-	result = dns.resolver.resolve(domain, 'A')
+	result = dns.resolver.query(domain, 'A')
 
 	if len(result)!= 0:
 		printx.colored("[✔] A records found: "+ str(len(result)),fg="green")
@@ -104,7 +105,7 @@ def checkDkim(domain,selector):
 	printx.colored("\n[+] Getting DKIM records for " +'\033[1m' + str(domain) + '\033[1m' +"...",fg="blue")
 	print ("Testing domain", domain, "for DKIM record with selector", selector, "...")
 	try:
-		test_dkim = dns.resolver.resolve(selector + '._domainkey.' + domain , 'TXT')
+		test_dkim = dns.resolver.query(selector + '._domainkey.' + domain , 'TXT')
 		for dns_data in test_dkim:
 			if 'DKIM1' in str(dns_data):
 				printx.colored("[✔] DKIM record found: ",fg="green")
@@ -115,6 +116,7 @@ def checkDkim(domain,selector):
 
 
 def checkEmailClient(dns_data):
+	# Mirar d'arreglar aixo i ficar str(google.com) in dns_data
 	dns_data = str(dns_data)
 	client_use = ""
 	if dns_data.find('google.com') != -1:
@@ -126,6 +128,9 @@ def checkEmailClient(dns_data):
 	if dns_data.find('yahoo.com') != -1:
 		client_use = "YAHOO.COM"
 
+	if dns_data.find('protonmail') != -1:
+		client_use = "PROTONMAIL.COM"
+
 	return client_use
 
 
@@ -135,7 +140,7 @@ def checkSpf(domain):
 	col_names = ["SPF value"]
 	data = []
 	try:
-		test_spf = dns.resolver.resolve(domain , 'TXT')
+		test_spf = dns.resolver.query(domain , 'TXT')
 		for dns_data in test_spf:
 			if 'spf1' in str(dns_data):
 				data.append([dns_data])

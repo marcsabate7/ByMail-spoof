@@ -101,10 +101,10 @@ def checkIp(ip):
 		print(    color.BOLD + '   Country: ' + color.END+ str(ip_country))
 		print(    color.BOLD + '   Usage type: ' + color.END+str(usage_type))
 		print(    color.BOLD + '   ISP: ' + color.END+str(internet_service_provider))
-		print(    color.BOLD + '   Domain: ' + color.END+str(domain))
+		print(    color.BOLD + '   PaaS used: ' + color.END+str(domain))
 		hosts = ' / '.join(str(e) for e in hostnames)
 		if hosts == "":
-			print(    color.BOLD + '   Hosts: ' + color.END+str("-"))
+			print(    color.BOLD + '   Host: ' + color.END+str("-"))
 		else:
 			print(    color.BOLD + '   Hosts: ' + color.END+str(hosts))
 
