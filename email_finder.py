@@ -7,6 +7,8 @@ import asyncio
 import dns
 from pyppeteer import launch
 import socket
+from PyInquirer import prompt
+from examples import custom_style_2
 
 api_keys1 = ["6d103ea6d5d7d4b0fe81ab23efbf6e79fb2189fe","9c4f2d7d18ecbc378147e5443f76422e50cd13bd","8f1558da76c8bf09a601b9327d09556f864f8880"]
 api_keys2 = ["77605d0a-0365-40b2-907e-39ab6e5c59b0","df9c2b7e-408d-41e2-b924-8cc793cb1e79"]
@@ -154,5 +156,59 @@ def emailFinder(domain):
 		for email in final_new_list:
 			print(email)
 		printx.colored("\n[✔] Found "+'\033[1m' + str(len(final_new_list)) +" emails" '\033[1m' +"!!",fg="green")
+		print("\n")
+		questions = [
+			{
+					'type': 'confirm',
+					'message': "You want to save the emails into '.txt' file?",
+					'name': 'save_emails',
+					'default': True,
+			},
+			{
+					'type': 'confirm',
+					'message': "You want to validate if the emails exists?",
+					'name': 'validate_emails',
+					'default': True,
+			}
+		]
+		email_answers = prompt(questions, style=custom_style_2)
+		print("\n")
+		if email_answers["save_emails"] == True:
+			non_validated_emails = '\n'.join(str(e) for e in final_new_list)
+			f = open("no_validate_emails.txt","w")
+			f.write(non_validated_emails)
+			f.close()
+			printx.colored("[+] Emails saved in 'no_validate_emails.txt'",fg="blue")
+		if email_answers["validate_emails"] == True:
+			validated_emails = []
+			printx.colored("[+] Validating " +'\033[1m' + str(len(final_new_list)) +" email adresses, " '\033[1m' + "this can take a bit long don't close it...",fg="blue")
+			api_key = "f375b481-a24b-4317-8c1a-f853328f00fc"
+			error_validator_counter = 0
+			for email in final_new_list:
+				try:
+					email_address = email.strip()
+					params = {'email': email_address}
+					headers = {'Authorization': "Bearer " + api_key }
+					response = requests.get("https://isitarealemail.com/api/email/validate",params = params, headers = headers)
+					status = response.json()['status']
+					if status == "valid":
+						validated_emails.append(email_address)
+					if status == "unknown":
+						validated_emails.append(email_address)
+				except:
+					printx.colored("[+] Error validating: "+str(email.strip()),fg="red")
+					error_validator_counter+=1
+					if error_validator_counter > 20:
+						validator_connection = False
+						printx.colored("[+] Validation conenction lost, try again later... ",fg="red")
+						break
+			if validator_connection !=False:
+				printx.colored("\n[✔] Valid emails: "+'\033[1m' + str(len(validated_emails))+"/"+str(len(final_new_list)) + '\033[1m' +"!!",fg="green")
+				validated_final_emails = '\n'.join(str(e) for e in validated_emails)
+				f = open("validated_emails.txt","w")
+				f.write(validated_final_emails)
+				f.close()
+
+
 	else:
 		printx.colored("[-] This domain doesn't exist!", fg="red")

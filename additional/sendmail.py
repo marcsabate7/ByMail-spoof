@@ -16,7 +16,7 @@ class SendMail(object):
 		self.starttls = False
 		self.verbose = False
 		self.log = False
-		self.screen_report=[]
+		#self.screen_report=[]
 
 		self.client_socket = None
 		self.tls_socket = None
@@ -43,13 +43,13 @@ class SendMail(object):
 
 	def print_send_msg(self, msg):
 		if self.verbose!=False:
-			self.screen_report.add("<<< " + msg)
-			#print("<<< " + msg)
+			#self.screen_report.add("<<< " + msg)
+			print("<<< " + msg)
 
 
 	def print_recv_msg(self, client_socket):
 		if self.verbose != False:
-			self.screen_report.add("<<< " + msg)
+			#self.screen_report.add("<<< " + msg)
 			print("\033[91m"+">>> ", end='')
 		time.sleep(1)
 

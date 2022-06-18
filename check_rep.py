@@ -3,6 +3,7 @@ import dns
 import requests
 from taser import printx
 import json
+from tabulate import tabulate
 from emailrep import EmailRep
 
 class color:
@@ -34,7 +35,6 @@ def checkEmailRep(email):
 			last_seen = result["details"]["last_seen"]
 			spoofable = result["details"]["spoofable"]
 
-			print("\n")
 			print("Information obtained:")
 			print("--------------------------")
 			print(    color.BOLD + '   Email scanned: ' + color.END+ str(email))
@@ -89,7 +89,6 @@ def checkIp(ip):
 		internet_service_provider = decodedResponse["data"]["isp"]
 		domain = decodedResponse["data"]["domain"]
 		hostnames = decodedResponse["data"]["hostnames"]
-
 		print("Information obtained:")
 		print("--------------------------")
 		if abuse_percentage == 0:
@@ -120,21 +119,22 @@ def checkIp(ip):
 	r_hetrix_tools = requests.get(url2, headers=headers)
 	hetrix_data = json.loads(r_hetrix_tools.text)
 
-	print("Checking blacklists...")
 
 	if hetrix_data["status"] == "SUCCESS":
 		blacklist_count = hetrix_data["blacklisted_count"]
 		blacklist_list = hetrix_data["blacklisted_on"]
-		backlists_urls = []
+		data2 = []
 		for elem in blacklist_list:
-			backlists_urls.append(elem["rbl"])
-		black = ' / '.join(str(e) for e in backlists_urls)
-
+			data2.append(elem["rbl"])
+		print("Checking blacklists:")
+		print("--------------------------")
 		if blacklist_count == 0:
-			printx.colored("   [✔] This IP is not blacklisted!",fg="green")
+			print(color.GREEN +"   [✔] This IP is not blacklisted!" + color.END + " (* This doesn't mean that the IP is not malicious)")
 		else:
 			printx.colored("   [!] Total blacklists: "+str(blacklist_count), fg="red")
-			print(   color.BOLD + '   Blacklists names: ' + color.END+str(black))
+			for data in data2:
+				print("       - "+str(data.strip()))
+
 	else:
 		printx.colored("[✖] Couldn't get part of information of this IP/DOMAIN, try it later...", fg="red")
 

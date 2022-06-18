@@ -1,6 +1,6 @@
 config = {
 	"attacker_site": b"attack.com", 
-	"legitimate_site_address": b"Departamento de Tecnologia - HSM <marcos@gss.cat>",   # Address you want to display to the final user  
+	"legitimate_site_address": b"Unitat d'Informatica - HSM <tic@gss.cat>",   # Address you want to display to the final user  
 	"case_id": b"1",    # Select mode in cases.py file
 
     # Marcos Palacios Cenizo <marcos.palacios@infojobs.com.br>

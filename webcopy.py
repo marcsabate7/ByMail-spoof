@@ -26,8 +26,8 @@ def websiteCopier(website_url):
                 threaded=False,
             )
             print("\n")
-            printx.colored("[+] Website cloned succesfully:\n    - Saved in: ./my_site\n[✔] Browser opened with the cloned website!\n\n",fg="green")
-            print("\n[!] If the website contains too JavaScript elements try with HTTrack for better performance!")
+            printx.colored("[+] Website cloned succesfully:\n    - Saved in: ./my_site\n[✔] Browser opened with the cloned website!\n",fg="green")
+            print("[!] If the website contains too JavaScript elements try with HTTrack for better performance!\n")
             break
         except:
             printx.colored("[-] An error has ocurred when clonning the website, retrying...",fg="red")
