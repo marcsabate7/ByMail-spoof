@@ -9,6 +9,7 @@ import string
 import traceback
 import config
 import time
+from datetime import datetime
 
 def bs64encode(value):
 	return b"=?utf-8?B?"+ base64.b64encode(value) + b"?="
@@ -23,6 +24,10 @@ def get_date():
 	mdate= strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
 	return (mdate).encode("utf-8")
 
+def get_current_date():
+	now = datetime.now()
+	dt_string = now.strftime("%H:%M:%S")
+	return dt_string
 
 def query_mx_record(domain):
 	try:
@@ -31,8 +36,8 @@ def query_mx_record(domain):
 			a_answers = dns.resolver.query(rdata.exchange, 'A')
 			for data in a_answers:
 				return str(data)
-	except Exception as e:
-		traceback.print_exc()
+	except:
+		return "non-exist-domain"
 
 
 def get_mail_server_from_email_address(domain):

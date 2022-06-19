@@ -107,7 +107,7 @@ def banner():
 	print("")
 	printx.colored(" v0.1.0 ",fg="white",bg="green")
 
-def reportConfig(config, cases,verbose, proxy_list,proxy_file, logs):
+def reportConfig(cases,config,verbose, proxy_list,proxy_file, logs):
 	print("")
 	col_names = ["Option", "Value"]
 	data = []
@@ -173,7 +173,7 @@ def reportConfig(config, cases,verbose, proxy_list,proxy_file, logs):
 	print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 	print("\n")
 	
-	printx.colored("* To use verbose, logs or threads take a look to the help panel!", fg="purple")
+	printx.colored("* To use logs or threads take a look to the help panel!", fg="purple")
 	print("\n")
 
 def showTemplates():
@@ -255,12 +255,11 @@ def helpPanel():
 	print("\n")
 	print("Help panel:\n")
 	print("                       ==============================================================")
-	printx.colored("                                                    Utilities",fg="purple")
+	printx.colored("                                                   Utilities",fg="purple")
 	print("                       ==============================================================")
 	print("                       [-t <num threads>] Threads to use (10 is recommended)")
-	print("                       [-v] Verbose mode reporting all steps and status")
 	print("                       [-proxy <file>] Proxy list, each email will be send with different IP")
-	print("                       [-l] Log generator, logging all steps and reports")
+	print("                       [-l] Log generator, logging all sockets data")
 	print("                       [-templates] Examples for email templates")
 	print("                       [-payloads] Show different payloads to use")
 	print("                       [-h/-help] Show this help panel and exit")
@@ -310,9 +309,6 @@ def parse_args():
 		if argument == '-payloads':
 			showPayloads()
 			sys.exit(1)
-		if argument == '-v':
-			verbose = True
-			args_counter+=1
 		if argument == '-t':
 			args_counter+=1
 			threads = True
@@ -340,7 +336,7 @@ def parse_args():
 
 
 	if '-lookup' in arguments:
-		reportConfig(verbose, proxy_list,proxy_file,logs)
+		reportConfig(cases.cases,config.config,True, proxy_list,proxy_file,logs)
 		sys.exit(1)
 
 	args = {
@@ -362,7 +358,6 @@ def end_script():
 
 def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_incorrect,config,cases):
 	errors_detected = False
-	print("")
 	col_names = ["Option", "Value"]
 	data = []
 	mode = config['case_id']
@@ -439,63 +434,71 @@ def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_inco
 		printx.colored("\n\n[-] Invalid configuration detected, fix it before continue...\n",fg="red")
 		sys.exit(1)
 
-
 def threadExecution(victim_email,num_thread,total_threads,verbose_mode,log_mode,config): # Aqui haurem de pasar la config
+	not_exist_domain = False
 	prova = int(num_thread) % int(total_threads)
 	if prova == 0:prova = total_threads
-	now = datetime.now()
-	dt_string = now.strftime("%H:%M:%S")
+
+	dt_string = get_current_date()
 	sem.acquire()
-	print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Sending email to: " +color.BOLD +str(victim_email)+color.END)
+	print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.BLUE +"Sending email to: "+ color.END + color.BOLD+str(victim_email)+color.END)
 	sem.release()
 	if verbose_mode == True:
-		now = datetime.now()
-		dt_string = now.strftime("%H:%M:%S")
+		dt_string = get_current_date()
 		sem.acquire()
-		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Getting MX IP address for domain...")
+		print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.BLUE+"Getting MX IP address for domain..."+color.END)
 		sem.release()
 	domain = victim_email.split("@")[1]
+
+
 	mail_server_ip = get_mail_server_from_email_address(domain)
-	if verbose_mode == True:
-		now = datetime.now()
-		dt_string = now.strftime("%H:%M:%S")
+	if mail_server_ip == "non-exist-domain": 
+		dt_string = get_current_date()
 		sem.acquire()
-		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"IP address obtained: " +color.BOLD +str(mail_server_ip)+color.END)
-		sem.release()
-	#print(mail_server_ip)
+		print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.RED +"Couldn't get MX IP address for domain " +str(domain)+", killing thread..."+color.END)
+		not_exist_domain = True
 
-	mail_server_port = config["server_mode"]['recv_mail_server_port']
-	starttls = config['server_mode']['starttls']
+	if not_exist_domain == False:
+		if verbose_mode == True:
+			dt_string = get_current_date()
+			sem.acquire()
+			print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.GREEN +"Victim server IP address obtained: "+ color.END+color.BOLD +str(mail_server_ip)+color.END)
+			sem.release()
+		
 
-	news_cases = copy.deepcopy(cases.cases)
+		mail_server_port = config["server_mode"]['recv_mail_server_port']
+		starttls = config['server_mode']['starttls']
 
-	different_return = update_cases_info(news_cases,victim_email,config)
-	if verbose_mode == True:
-		now = datetime.now()
-		dt_string = now.strftime("%H:%M:%S")
+		news_cases = copy.deepcopy(cases.cases)
+
+		different_return = update_cases_info(news_cases,victim_email,config)
+		if verbose_mode == True:
+			dt_string = get_current_date()
+			sem.acquire()
+			print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.BLUE +"Generating SMTP data sequence..."+color.END)
+			sem.release()
+
+		smtp_seqs = generate_smtp_seqs(different_return)
+
+		message_content = smtp_seqs["msg_content"]
+
+		if verbose_mode == True:
+			dt_string = get_current_date()
+			sem.acquire()
+			print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.YELLOW +"Opening socket and sending data..."+color.END)
+			sem.release()
+		# Mirar de pasar el verbose mode i el log mode per controlarho des de els sockets
+		# Mirar de utilitzar socksiPy
+
+		send_mail = SendMail()
+		send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode, log = log_mode,num_thread = prova)
+		status_return = send_mail.send_email()
+
+		dt_string = get_current_date()
 		sem.acquire()
-		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Generating SMTP data sequence...")
+		if status_return != "blocked":
+			print("[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.GREEN +"Email sent successfully to: "+color.END + color.BOLD +str(victim_email) +color.END)
 		sem.release()
-	smtp_seqs = generate_smtp_seqs(different_return)
-
-	message_content = smtp_seqs["msg_content"]
-	#print("["+ str(email_number+1)+ "]" +message_content)
-	if verbose_mode == True:
-		now = datetime.now()
-		dt_string = now.strftime("%H:%M:%S")
-		sem.acquire()
-		print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +"Opening socket and sending data...")
-		sem.release()
-	# Mirar de pasar el verbose mode i el log mode per controlarho des de els sockets
-	# Mirar de utilitzar socksiPy
-	send_mail = SendMail()
-	send_mail.set_mail_info((mail_server_ip, mail_server_port),helo=smtp_seqs["helo"], mail_from=smtp_seqs["mailfrom"], rcpt_to =smtp_seqs["rcptto"], email_data=message_content, starttls=starttls,verbose = verbose_mode, log = log_mode)
-	send_mail.send_email()
-	now = datetime.now()
-	dt_string = now.strftime("%H:%M:%S")
-	sem.acquire()
-	print(color.BLUE +"[Thread "+str(prova)+" - "+str(dt_string)+"]  " +color.END +color.GREEN +"Email sent successfully to: "+str(victim_email) +color.END)
-	sem.release()
 
 
 def executor(num_threads,emails,verbose,logs,config):
@@ -597,21 +600,15 @@ def optionsMenu():
 				},
 				{
 					'type': 'confirm',
-					'message': 'Verbose mode (report info while program is running)?',
-					'name': 'verbose',
-					'default': True,
-				},
-				{
-					'type': 'confirm',
-					'message': 'Log mode?',
+					'message': "Log mode (Save sockets send/receive data in a 'log.txt' file)?",
 					'name': 'logs',
 					'default': True,
 				},
 				{
 					'type': 'input',
-					'message': 'Num threads (Default 1):',
+					'message': 'Num threads (Default 2):',
 					'name': 'num_threads',
-					'default': "1",
+					'default': "2",
 				},
 				{
 					'type': 'input',
@@ -752,18 +749,20 @@ def main():
 
 		print("\n")
 		# ARREGLAR AQUI, FICAR COMPROBACIÓ DIRECTAMENT
-		while True:
-			emails = read_user_emails()
-			if len(emails) !=0:
-				printx.colored("Victim emails uploaded succesfully...!",fg="green")
-				break
-			printx.colored("Add victim emails to the users.txt file before continue...",fg="red")
-			time.sleep(5)
-		check_config(args["verbose"],proxy,args["proxy_file"],args["logs"], args["num_threads"], threads_incorrect,configuration,cases.cases)
+		emails = read_user_emails()
+		if len(emails) == 0:
+			while True:
+				emails = read_user_emails()
+				if len(emails) !=0:
+					printx.colored("Victim emails uploaded succesfully...!",fg="green")
+					break
+				printx.colored("Add victim emails to the users.txt file before continue...",fg="red")
+				time.sleep(5)
+		check_config(True,proxy,args["proxy_file"],args["logs"], args["num_threads"], threads_incorrect,configuration,cases.cases)
 
 	else:
 		configuration = config.config
-		check_config(args["verbose"],args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"],configuration,cases.cases)
+		check_config(True,args["proxy"],args["proxy_file"],args["logs"], args["num_threads"], args["threads_incorrect"],configuration,cases.cases)
 	
 
 	print("\n")
@@ -780,7 +779,7 @@ def main():
 
 	last_victim_email = "victim@victim.com"
 
-	executor(args["num_threads"],emails, args["verbose"],args["logs"],configuration)
+	executor(args["num_threads"],emails, True,args["logs"],configuration)
 
 	sys.exit()
 	for victim_email in emails:
