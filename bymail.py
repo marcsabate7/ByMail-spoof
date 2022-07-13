@@ -77,6 +77,14 @@ def def_handler(sig, frame):
 # Ctrl+C
 signal.signal(signal.SIGINT, def_handler)
 
+
+def end_script():
+	printx.colored("\n\n[-] Closing program...\n",fg="red")
+	sys.exit(1)
+
+
+
+
 class color:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
@@ -352,9 +360,36 @@ def parse_args():
 
 	return args
 
-def end_script():
-	printx.colored("\n\n[-] Closing program...\n",fg="red")
-	sys.exit(1)
+
+def changeData():
+	questions = [
+		{
+			'type': 'confirm',
+			'message': 'Input sender email address (Fake address)',
+			'name': 'chiper',
+			'default': True,
+		},
+		{
+			'type': 'confirm',
+			'message': "Input email subject",
+			'name': 'logs',
+			'default': True,
+		},
+		{
+			'type': 'input',
+			'message': 'Num threads (Default 2):',
+			'name': 'num_threads',
+			'default': "2",
+		},
+		{
+			'type': 'input',
+			'message': 'Input proxies file name if you want to use proxies, if not leave it blank:',
+			'name': 'proxy_file',
+			'default': "",
+		}
+	]
+
+	changing_data_answers = prompt(questions, style=custom_style_2)
 
 def check_config(verbose, proxy_list,proxy_file, logs, num_threads, threads_incorrect,config,cases):
 	errors_detected = False
@@ -518,8 +553,9 @@ def configurationMenu():
 					'2) View templates',
 					'3) View payloads',
 					'4) View victim emails',
-					'5) Check all configuration set',
-					'6) Go back'
+					'5) Change sender information',
+					'6) Check all configuration set',
+					'7) Go back'
 				]
 			}
 		]
@@ -554,11 +590,14 @@ def configurationMenu():
 			print(tabulate(data, headers=col_names, tablefmt="fancy_grid"))
 			print("\n")
 
-		if answers2['option'] == "3) Check all configuration set":
+		if answers2['option'] == "5) Change sender information":
+			changeData()
+
+		if answers2['option'] == "6) Check all configuration set":
 			reportConfig(config.config,cases.cases,False,False,False,False)
 			print("\n")
 			
-		if answers2['option'] == "6) Go back":
+		if answers2['option'] == "7) Go back":
 			exit_loop2 = True
 
 

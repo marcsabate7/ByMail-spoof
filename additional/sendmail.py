@@ -6,6 +6,7 @@ import base64
 from io import StringIO
 import sys
 from additional.common import *
+import threading
 
 
 class color:
@@ -20,6 +21,7 @@ class color:
    UNDERLINE = '\033[4m'
    END = '\033[0m'
 
+sem = threading.Semaphore()
 
 class SendMail(object):
 	def __init__(self):
@@ -97,13 +99,17 @@ class SendMail(object):
 
 	def send_smtp_cmds(self, client_socket):
 		dt_string = get_current_date()
+		sem.acquire()
 		print("[Thread "+str(self.num_thread)+" - "+str(dt_string)+"]  " +color.YELLOW +"Sending ehlo..."+color.END)
+		sem.release()
 		client_socket.send(b"ehlo "+self.helo+b"\r\n")
 		time.sleep(0.1)
 		self.print_send_msg("ehlo "+ self.helo.decode("utf-8")+"\r\n")
 		self.print_recv_msg(client_socket)
 		dt_string = get_current_date()
+		sem.acquire()
 		print("[Thread "+str(self.num_thread)+" - "+str(dt_string)+"]  " +color.YELLOW +"Sending mail from..."+color.END)
+		sem.release()
 		client_socket.send(b'mail from: '+self.mail_from+b'\r\n')
 		time.sleep(0.1)
 		self.print_send_msg('mail from: '+self.mail_from.decode("utf-8")+'\r\n')
@@ -111,17 +117,23 @@ class SendMail(object):
 		if returned_message == "blocked":
 			dt_string = get_current_date()
 			self.blocked_socket = True
+			sem.acquire()
 			print("[Thread "+str(self.num_thread)+" - "+str(dt_string)+"]  " +color.RED +"Closing socket due to source IP blocked..."+color.END)
+			sem.release()
 			self.close_socket()
 		else:
 			dt_string = get_current_date()
+			sem.acquire()
 			print("[Thread "+str(self.num_thread)+" - "+str(dt_string)+"]  " +color.YELLOW +"Sending rcpt to..."+color.END)
+			sem.release()
 			client_socket.send(b"rcpt to: "+self.rcpt_to+b"\r\n")
 			time.sleep(0.1)
 			self.print_send_msg("rcpt to: "+self.rcpt_to.decode("utf-8")+"\r\n")
 			self.print_recv_msg(client_socket)
 			dt_string = get_current_date()
+			sem.acquire()
 			print("[Thread "+str(self.num_thread)+" - "+str(dt_string)+"]  " +color.YELLOW +"Sending data..."+color.END)
+			sem.release()
 			client_socket.send(b"data\r\n")
 			time.sleep(0.1)
 			self.print_send_msg( "data\r\n")

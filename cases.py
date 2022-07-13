@@ -13,7 +13,7 @@ cases = {
         "data": {                   
             "from_header": b"From: admin@legitimate.com\r\n",
             "to_header": b"To: <victim@victim.com>\r\n",
-            "subject_header": b"Subject: Canvi d'acces al portal de l'empleat \r\n",
+            "subject_header": b"Subject: Prova d'enviament per la presentacio \r\n",
             "body": b"<h1>Esto es una prueba</h1>\r\n",
             "other_headers": b"Date: " + get_date() + b"\r\n" + b'Content-Type: text/html; charset="iso-8859-1"\r\nMIME-Version: 1.0\r\nMessage-ID: <1538085644648.096e3d4e-bc38-4027-b57e-' + id_generator() + b'@message-ids.attack.com>\r\n\r\n',
         },
